@@ -1,0 +1,10 @@
+{
+  "name": "clear-session",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "description": "automatically clear unused sessions",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^2.2.3"
+  }
+}
