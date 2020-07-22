@@ -3,6 +3,8 @@ import cfg from '../cloudbaserc'
 import md5 from 'md5'
 
 interface ISession {
+  /** session id */
+  sessID: string
   /** meeting id */
   title: string
   /** created time */
@@ -28,6 +30,8 @@ interface IClient {
 const app = tcb.init({
   env: cfg.envId
 })
+
+const db = app.db
 
 async function signIn() {
   const auth = app.auth({
