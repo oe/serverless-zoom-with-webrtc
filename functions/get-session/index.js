@@ -9,23 +9,21 @@ exports.main = async function (evt) {
     code: 1,
     message: 'session id is required'
   }
-  const now = Date.now()
-  // last day
-  const threshold = now - 24 * 60 * 60 * 1000
-  const _ = db.command
   try {
-    const session = await db
+    const sessions = await db
       .collection('sessions')
       .where({
         sessID: evt.sessID
       })
-    if (!session) return {
+      .get()
+    // return {sessions}
+    if (!sessions.data || !sessions.data.length) return {
       code: 0
     }
+    const session = sessions.data[0]
     session.hasPass = !!session.pass
     // remove sensitive info
     delete session.pass
-    delete session.clients
     return {
       code: 0,
       data: session

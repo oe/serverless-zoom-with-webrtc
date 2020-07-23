@@ -3,14 +3,14 @@ module.exports = {
 
   "framework": {
     "plugins": {
-      "client": {
-        "use": "@cloudbase/framework-plugin-website",
-        "inputs": {
-          "buildCommand": "npm run build",
-          "outputPath": "dist",
-          "cloudPath": "/online-meeting"
-        }
-      },
+      // "client": {
+      //   "use": "@cloudbase/framework-plugin-website",
+      //   "inputs": {
+      //     "buildCommand": "npm run build",
+      //     "outputPath": "dist",
+      //     "cloudPath": "/online-meeting"
+      //   }
+      // },
       "server": {
         "use": "@cloudbase/framework-plugin-function",
         "inputs": {

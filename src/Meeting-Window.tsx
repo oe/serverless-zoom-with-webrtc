@@ -57,7 +57,6 @@ export default class MeetingWindow extends Component<IProps, IState> {
   updateStream = (stream: MediaStream) =>{
 
     const dom = this.videoRef.current
-    // console.log(this.state, stream)
     if (!dom) return
     dom.muted = this.state.isSelf
     if ('srcObject' in dom) {

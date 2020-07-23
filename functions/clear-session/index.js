@@ -7,13 +7,13 @@ const db = app.database()
 exports.main = async function () {
   const now = Date.now()
   // last day
-  const threshold = now - 24 * 60 * 60 * 1000
+  const threshold = now - 2 * 24 * 60 * 60 * 1000
   const _ = db.command
   try {
     await db
       .collection('sessions')
       .where({
-        lastActiveAt: _.lte(threshold)
+        createdAt: _.lte(threshold)
       })
       .remove()
     

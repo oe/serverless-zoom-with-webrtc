@@ -50,8 +50,8 @@ export interface ILocalConnector {
   client: IClient
 }
 
-export async function getLocalConn(isHost: boolean = false) {
-  const peer = new Peer({initiator: isHost})
+export async function getLocalConn(isHost: boolean = false, ipeer?: Peer.Instance) {
+  const peer = ipeer || new Peer({initiator: isHost})
   const conn: any[] = []
   return new Promise<ILocalConnector>((resolve) => {
     peer.on('signal', data => {
@@ -87,6 +87,8 @@ export interface ISessionDigest {
   hasPass: boolean
   /** host id */
   host: string
+  /** all client id */
+  clients: IClient[]
 }
 
 export async function getSessionInfo(sessID: string) {
@@ -97,7 +99,8 @@ export async function getSessionInfo(sessID: string) {
       sessID
     }
   })
-  return result as ISessionDigest
+  if (!result.result.code) return result.result.data as ISessionDigest
+  throw new Error('get session failed ' + JSON.stringify(result))
 }
 
 export interface IMeetingMeta {
@@ -118,7 +121,6 @@ export async function createSession(client: IClient, meta: IMeetingMeta) {
     name: 'create-session',
     data: session
   })
-  console.log('create session', result)
   return session.sessID
 }
 
@@ -130,6 +132,8 @@ export async function watchSession(sessID: string, onChange: (clients: IClient[]
     .where({sessID})
     .watch({
       onChange: (snapshot) => {
+        console.error(snapshot)
+        if (!snapshot.docs.length) return
         onChange(snapshot.docs[0].clients)
       },
       onError: (err) => {
@@ -138,9 +142,8 @@ export async function watchSession(sessID: string, onChange: (clients: IClient[]
     })
 }
 
-export function connect2peer(localConn: ILocalConnector, clients: IClient[]) {
-  const peer = localConn.peer
-  const selfID = localConn.client.id
+export function connect2peer(peer: Peer.Instance, selfID: string, clients: IClient[]) {
+
   clients.filter(c => c.id !== selfID)
   if (!clients.length) return false
   const connArr = JSON.parse(clients[0].conn) as string[]
@@ -161,7 +164,7 @@ export async function joinMeeting (session: ISessionDigest, localConn: ILocalCon
     }
   })
   if (!result.result.code) {
-    connect2peer(localConn, result.result.data.clients)
+    connect2peer(localConn.peer, localConn.client.id, result.result.data.clients)
   }
   return result.result
 }

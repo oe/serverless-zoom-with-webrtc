@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
-import { Row, Col, Spin} from 'antd'
+import { message, Row, Col, Spin} from 'antd'
 import * as sessionUtils from './sessions'
 import MeetingWindow from './Meeting-Window'
 import SelfWindow from './Self-Window'
 import * as utils from './utils'
+import Peer from 'simple-peer'
 
 interface IState {
   isInited: boolean
@@ -13,12 +14,11 @@ interface IState {
   connector?: sessionUtils.ILocalConnector
 
   isHost: boolean
-  link?: string
   pass?: string
 }
 
 interface IInviteLink {
-  link: string
+  sessID: string
   pass?: string
 }
 
@@ -37,7 +37,6 @@ export default class SessionView extends Component<{}, IState> {
   }
 
   async componentDidMount() {
-    let isHost = true
     let newState: Partial<IState> = {}
     if (this.state.hasSession) {
       let sessionInfo: sessionUtils.ISessionDigest | null = null
@@ -54,7 +53,6 @@ export default class SessionView extends Component<{}, IState> {
           sessID: ''
         }
       } else {
-        isHost = false
         newState = {
           isInited: true,
           session: sessionInfo
@@ -62,7 +60,13 @@ export default class SessionView extends Component<{}, IState> {
       }
     }
     newState.isInited = true
-    newState.connector = await sessionUtils.getLocalConn(isHost)
+    newState.connector = await sessionUtils.getLocalConn(true)
+    // is host
+    if (newState.connector.client.id !== newState.session?.host) {
+      const peer = new Peer()
+      sessionUtils.connect2peer(peer, newState.connector.client.id, newState.session!.clients)
+      newState.connector = await sessionUtils.getLocalConn(false, peer)
+    }
     // @ts-ignore
     this.setState(newState)
     return
@@ -90,7 +94,7 @@ export default class SessionView extends Component<{}, IState> {
           </Col>
         </Row>
         {this.state.isHost && (<Row>
-          <Col span={10}><WaitingView sessID={this.state.link!} pass={this.state.pass}/></Col>
+          <Col span={10}><WaitingView sessID={this.state.sessID!} pass={this.state.pass}/></Col>
         </Row>)}
       </div>
     )

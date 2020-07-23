@@ -11,15 +11,18 @@ exports.main = async function (evt) {
   }
   
   try {
-    const session = await db
+    const sessions = await db
       .collection('sessions')
       .where({
         sessID: evt.sessID
       })
-    if (!session) return {
+      .get()
+    
+    if (!sessions.data || !sessions.data.length) return {
       code: 2,
       message: 'meeting not exists'
     }
+    const session = sessions.data[0]
 
     if (!evt.client) return {
       code: 3,
@@ -35,7 +38,7 @@ exports.main = async function (evt) {
     // remove exists clients
     const clients = session.clients.filter(c => c.id !== clientID)
     clients.push(evt.client)
-    await db.collection('sessions').doc(session.id).update({clients: clients})
+    await db.collection('sessions').doc(session._id).update({clients: clients})
     // remove passcode if current user not host
     if (session.host !== clientID) {
       delete session.pass

@@ -46,7 +46,8 @@ export default class SelfWindow extends Component<IProps, IState> {
 
   watchPeer = (sessID: string) => {
     sessionUtils.watchSession(sessID, (clients: sessionUtils.IClient[]) => {
-      sessionUtils.connect2peer(this.props.connector, clients)
+      const conn = this.props.connector
+      sessionUtils.connect2peer(conn.peer, conn.client.id, clients)
     })
   }
 
