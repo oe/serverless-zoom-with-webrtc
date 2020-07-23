@@ -13,26 +13,12 @@ exports.main = async function (evt) {
   try {
     const session = await db
       .collection('sessions')
-      .where({
-        sessID: evt.sessID
-      })
-    if (session.pass && session.pass !== evt.pass) return {
-      code: 3,
-      message: 'meeting passcode not match'
-    }
-    if (!evt.client) return {
-      code: 4,
-      message: 'client info required'
-    }
-    session.clients.push(evt.client)
-    await db.collection('sessions').doc(session.id).update({clients: session.clients})
-    delete session.pass
-
+      .add(evt)
+    
     return {
       code: 0,
       data: session
     }
-    
   } catch (error) {
     return {
       code: 2,

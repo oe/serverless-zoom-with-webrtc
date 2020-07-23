@@ -40,7 +40,12 @@ export default class SessionView extends Component<{}, IState> {
     let isHost = true
     let newState: Partial<IState> = {}
     if (this.state.hasSession) {
-      const sessionInfo = await sessionUtils.getSessionInfo(this.state.sessID)
+      let sessionInfo: sessionUtils.ISessionDigest | null = null
+      try {
+        sessionInfo = await sessionUtils.getSessionInfo(this.state.sessID)
+      } catch (error) {
+        console.log('get session info failed', error)
+      }
       if (!sessionInfo) {
         location.hash = ''
         newState = {

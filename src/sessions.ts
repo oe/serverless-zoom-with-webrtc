@@ -114,10 +114,11 @@ export async function createSession(client: IClient, meta: IMeetingMeta) {
     createdAt: Date.now(),
     clients: [client]
   }
-  const _ = await tcb.callFunction({
+  const result = await tcb.callFunction({
     name: 'create-session',
     data: session
   })
+  console.log('create session', result)
   return session.sessID
 }
 
