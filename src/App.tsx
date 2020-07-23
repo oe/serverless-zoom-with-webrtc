@@ -1,21 +1,37 @@
 
-import * as React from 'react';
-import { hot } from "react-hot-loader/root";
+import React from 'react'
+import { hot } from "react-hot-loader/root"
+import * as utils from './utils'
+import NotSupport from './Not-Support'
+import Session from './Session-View'
+
 
 interface Props {
   name?: string
 }
 
-class App extends React.Component<Props> {
+interface IState {
+  isSupportRTC: boolean
+  hasPermission: boolean
+}
+
+class App extends React.Component<Props, IState> {
+  constructor (props: Props) {
+    super(props)
+    this.state = {
+      isSupportRTC: utils.isSupportRTC(),
+      hasPermission: false
+    }
+  }
+  async componentDidMount() {
+    const hasPerm = await utils.hasMediaPermission()
+    this.setState({
+      hasPermission: hasPerm
+    })
+  }
   render() {
-    const { name } = this.props;
-    return (
-      <>
-        <h1>
-          Hello {name || 'Saiya'}
-        </h1>
-      </>
-    );
+    if (!this.state.isSupportRTC) return <NotSupport />
+    return <Session />
   }
 }
 

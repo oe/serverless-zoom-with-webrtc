@@ -14,11 +14,13 @@
   },
   "dependencies": {
     "@types/md5": "^2.2.0",
+    "@types/simple-peer": "^9.6.0",
     "antd": "^4.4.2",
     "md5": "^2.2.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-hot-loader": "^4.12.21",
+    "simple-peer": "^9.7.2",
     "tcb-js-sdk": "^1.10.2"
   },
   "devDependencies": {

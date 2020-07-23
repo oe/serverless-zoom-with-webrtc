@@ -9,27 +9,30 @@ exports.main = async function (evt) {
     code: 1,
     message: 'session id is required'
   }
-  const now = Date.now()
-  // last day
-  const threshold = now - 24 * 60 * 60 * 1000
-  const _ = db.command
+  
   try {
     const session = await db
       .collection('sessions')
       .where({
         sessID: evt.sessID
       })
-    if (!session) return {
-      code: 0
+    if (session.pass && session.pass !== evt.pass) return {
+      code: 3,
+      message: 'meeting passcode not match'
     }
-    session.hasPass = !!session.pass
-    // remove sensitive info
+    if (!evt.client) return {
+      code: 4,
+      message: 'client info required'
+    }
+    session.clients.push(evt.client)
+    await db.collection('sessions').doc(session.id).update({clients: session.clients})
     delete session.pass
-    delete session.clients
+
     return {
       code: 0,
       data: session
     }
+    
   } catch (error) {
     return {
       code: 2,

@@ -16,26 +16,38 @@ exports.main = async function (evt) {
       .where({
         sessID: evt.sessID
       })
-    if (session.pass && session.pass !== evt.pass) return {
-      code: 3,
-      message: 'meeting passcode not match'
+    if (!session) return {
+      code: 2,
+      message: 'meeting not exists'
     }
+
     if (!evt.client) return {
-      code: 4,
+      code: 3,
       message: 'client info required'
     }
-    session.clients.push(evt.client)
-    await db.collection('sessions').doc(session.id).update({clients: session.clients})
-    delete session.pass
+    const clientID = evt.client.id
+    // not connected before and passcode not match
+    if (!session.clients.some(c => c.id === clientID) && 
+      (session.pass && session.pass !== evt.pass)) return {
+      code: 4,
+      message: 'meeting passcode not match'
+    }
+    // remove exists clients
+    const clients = session.clients.filter(c => c.id !== clientID)
+    clients.push(evt.client)
+    await db.collection('sessions').doc(session.id).update({clients: clients})
+    // remove passcode if current user not host
+    if (session.host !== clientID) {
+      delete session.pass
+    }
 
     return {
       code: 0,
       data: session
     }
-    
   } catch (error) {
     return {
-      code: 2,
+      code: -1,
       message: 'failed to query session info',
       extra: error
     }
