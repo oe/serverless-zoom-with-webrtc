@@ -62,7 +62,7 @@ export default class SessionView extends Component<{}, IState> {
     newState.isInited = true
     newState.connector = await sessionUtils.getLocalConn(true)
     // is host
-    if (newState.connector.client.id !== newState.session?.host) {
+    if (newState.session && newState.connector.client.id !== newState.session.host) {
       const peer = new Peer()
       sessionUtils.connect2peer(peer, newState.connector.client.id, newState.session!.clients)
       newState.connector = await sessionUtils.getLocalConn(false, peer)
