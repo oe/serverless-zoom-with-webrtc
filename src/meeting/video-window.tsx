@@ -50,6 +50,7 @@ export default class MeetingWindow extends Component<IProps, IState> {
   }
 
   onGetStream = (stream: MediaStream) => {
+    console.error('get stream', this.props.peer)
     this.updateStream(stream)
     this.streamCbs.forEach(cb => cb(stream))
   }

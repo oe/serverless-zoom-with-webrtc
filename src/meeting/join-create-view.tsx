@@ -1,7 +1,7 @@
 import React, { Component, useState, useCallback } from 'react'
 import { message, Form, Input, Button } from 'antd'
-import * as sessionUtils from '../sessions'
-import MeetingWindow from '../Meeting-Window'
+import * as sessionUtils from './api'
+import MeetingWindow from '../meeting/video-window'
 
 interface IProps {
   connector: sessionUtils.ILocalConnector
@@ -36,6 +36,7 @@ export default class SelfWindow extends Component<IProps, IState> {
   async tryAutoConn () {
     try {
       const result = await sessionUtils.joinMeeting(this.props.session!, this.props.connector)
+      console.log('try auto', result)
       if (this.state.isHost) {
         this.props.updateVideoLinkInfo({sessID: result.sessID, pass: result.pass})
       }
@@ -64,11 +65,11 @@ export default class SelfWindow extends Component<IProps, IState> {
   }
 
   onCreateMeeting = async (options: sessionUtils.IMeetingMeta) => {
-    const sessID = await sessionUtils.createSession(this.props.connector.client, options)
-    location.hash = sessID
+    const result = await sessionUtils.createSession(this.props.connector.client, options)
+    location.hash = result.sessID
     this.setState({status: 'waiting'})
-    this.watchPeer(sessID)
-    this.props.updateVideoLinkInfo({sessID: sessID, pass: options.pass})
+    this.watchPeer(result.id)
+    this.props.updateVideoLinkInfo({sessID: result.sessID, pass: options.pass})
     return true
   }
 
@@ -115,9 +116,11 @@ function EnterMeeting(props: IEnterMeetingProps) {
       const result = await props.onSubmit(values)
       if (result.code) {
         message.warn(result.message)
+        setLoading(false)
       }
     } catch (error) {
-      console.log('failed to create meeting', error)
+      message.error('failed to enter meeting')
+      console.log('failed to enter meeting', error)
       setLoading(false)
     }
   }, [props])

@@ -1,9 +1,8 @@
 import React, { Component } from 'react'
 import { message, Row, Col, Spin} from 'antd'
-import * as sessionUtils from './sessions'
-import MeetingWindow from './Meeting-Window'
-import SelfWindow from './Self-Window'
-import * as utils from './utils'
+import * as sessionUtils from './api'
+import MeetingWindow from './video-window'
+import JoinCreateView from './join-create-view'
 import Peer from 'simple-peer'
 
 interface IState {
@@ -73,6 +72,7 @@ export default class SessionView extends Component<{}, IState> {
   }
 
   updateVideoLinkInfo = (info: IInviteLink) => {
+    console.log('update video ', info)
     this.setState({
       isHost: true,
       ...info
@@ -90,11 +90,11 @@ export default class SessionView extends Component<{}, IState> {
             <MeetingWindow />
           </Col>
           <Col span={10}>
-            <SelfWindow updateVideoLinkInfo={this.updateVideoLinkInfo} connector={this.state.connector!} session={this.state.session}/>
+            <JoinCreateView updateVideoLinkInfo={this.updateVideoLinkInfo} connector={this.state.connector!} session={this.state.session}/>
           </Col>
         </Row>
         {this.state.isHost && (<Row>
-          <Col span={10}><WaitingView sessID={this.state.sessID!} pass={this.state.pass}/></Col>
+          <Col span={10} offset={8}><WaitingView sessID={this.state.sessID!} pass={this.state.pass}/></Col>
         </Row>)}
       </div>
     )
@@ -109,7 +109,7 @@ function WaitingView(props: IWaitingViewProps) {
   const url = location.origin + location.pathname + location.search + '#' + props.sessID
   const pass = props.pass ? ` passcode: ${props.pass}` : ''
   return (
-    <div>
+    <div style={{textAlign: 'center'}}>
       Meeting just created<br/>
       Please copy the following url and send it to your fellow<br />
       <code>Meeting Url: {url} {pass}</code>

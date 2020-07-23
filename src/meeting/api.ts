@@ -1,6 +1,5 @@
 import tcb from 'tcb-js-sdk'
-import cfg from '../cloudbaserc'
-import md5 from 'md5'
+import cfg from '../../cloudbaserc'
 import Peer from 'simple-peer'
 import * as utils from './utils'
 
@@ -35,10 +34,11 @@ const app = tcb.init({
   env: cfg.envId
 })
 
+const auth = app.auth({
+  persistence: 'local'
+})
+
 async function signIn() {
-  const auth = app.auth({
-    persistence: 'local'
-  })
   if (auth.hasLoginState()) return true
   await auth.signInAnonymously()
   return true
@@ -55,9 +55,13 @@ export async function getLocalConn(isHost: boolean = false, ipeer?: Peer.Instanc
   const conn: any[] = []
   return new Promise<ILocalConnector>((resolve) => {
     peer.on('signal', data => {
+      console.warn('signal', data)
       conn.push(data)
       if (conn.length === 2) {
-        resolve(buildConn(peer, conn, isHost))
+        const connector = buildConn(peer, conn, isHost)
+        // @ts-ignore
+        window.connector = connector
+        resolve(connector)
       }
     })
   })
@@ -65,7 +69,7 @@ export async function getLocalConn(isHost: boolean = false, ipeer?: Peer.Instanc
 
 function buildConn(peer: Peer.Instance, connObj: object[], isHost: boolean): ILocalConnector {
   const conn = JSON.stringify(connObj)
-  const id = md5(conn)
+  const id = utils.getClientID(conn)
   return {
     isHost,
     peer,
@@ -121,15 +125,17 @@ export async function createSession(client: IClient, meta: IMeetingMeta) {
     name: 'create-session',
     data: session
   })
-  return session.sessID
+  console.log('create meeting', result)
+  if (result.result.code) throw new Error('failed to create meeting ' + JSON.stringify(result.result))
+  return {sessID: session.sessID, id: result.result.data.id}
 }
 
 let watcher:any = null
-export async function watchSession(sessID: string, onChange: (clients: IClient[]) => void) {
+export async function watchSession(_id: string, onChange: (clients: IClient[]) => void) {
   await signIn()
   watcher?.close()
   watcher = app.database().collection('sessions')
-    .where({sessID})
+    .doc(_id)
     .watch({
       onChange: (snapshot) => {
         console.error(snapshot)
@@ -163,8 +169,11 @@ export async function joinMeeting (session: ISessionDigest, localConn: ILocalCon
       client: localConn.client
     }
   })
+  console.log('join meeting', result.result)
   if (!result.result.code) {
     connect2peer(localConn.peer, localConn.client.id, result.result.data.clients)
   }
   return result.result
 }
+// @ts-ignore
+window.connect2peer = connect2peer

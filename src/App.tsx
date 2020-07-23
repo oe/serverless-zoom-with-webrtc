@@ -1,9 +1,9 @@
 
 import React from 'react'
 import { hot } from "react-hot-loader/root"
-import * as utils from './utils'
+import * as utils from './meeting/utils'
 import NotSupport from './Not-Support'
-import Session from './Session-View'
+import Session from './meeting'
 
 
 interface Props {
