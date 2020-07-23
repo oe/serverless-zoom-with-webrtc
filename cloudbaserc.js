@@ -1,5 +1,6 @@
 module.exports = {
   envId: 'tcb-demo-10cf5b',
+
   "framework": {
     "plugins": {
       "client": {
@@ -16,16 +17,32 @@ module.exports = {
           "functionRootPath": "functions",
           "functions": [
             {
-              "name": "clear-session"
+              name: "clear-session",
+              timeout: 5,
+              runtime: 'Nodejs10.15',
+              memorySize: 128,
+              installDependency: true
             },
             {
-              "name": "get-session"
+              "name": "get-session",
+              timeout: 5,
+              runtime: 'Nodejs10.15',
+              memorySize: 128,
+              installDependency: true
             },
             {
-              "name": "join-session"
+              name: "join-session",
+              timeout: 5,
+              runtime: 'Nodejs10.15',
+              memorySize: 128,
+              installDependency: true
             },
             {
-              "name": "create-session"
+              name: "create-session",
+              timeout: 5,
+              runtime: 'Nodejs10.15',
+              memorySize: 128,
+              installDependency: true
             }
           ]
         }

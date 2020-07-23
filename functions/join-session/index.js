@@ -1,10 +1,10 @@
-const tcb = require('@cloudbase/node-sdk')
-const app = tcb.init({
-  env: tcb.SYMBOL_CURRENT_ENV
-})
-const db = app.database()
 
 exports.main = async function (evt) {
+  const tcb = require('@cloudbase/node-sdk')
+  const app = tcb.init({
+    env: tcb.SYMBOL_CURRENT_ENV
+  })
+  const db = app.database()
   if (!evt.sessID) return {
     code: 1,
     message: 'session id is required'
