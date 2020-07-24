@@ -1,11 +1,11 @@
 import React, { Component, useState, useCallback } from 'react'
 import { message, Form, Input, Button } from 'antd'
 import * as sessionUtils from './api'
-import MeetingWindow from '../meeting/video-window'
+import * as peers from './peers'
 
 interface IProps {
-  connector: sessionUtils.ILocalConnector
-  session: sessionUtils.ISessionDigest | null
+  isHost?: boolean
+  session?: sessionUtils.ISessionDigest
   updateVideoLinkInfo: Function
 }
 
@@ -13,17 +13,14 @@ interface IState {
   status: 'init' | 'waiting'
   hasSession: boolean
   sessID: string
-  isHost: boolean
 }
 
 export default class SelfWindow extends Component<IProps, IState> {
   constructor (props: IProps) {
     super(props)
-    const isHost = props.connector.client.id === props.session?.host
 
     this.state = {
-      isHost,
-      status: isHost ? 'waiting' : 'init',
+      status: props.isHost ? 'waiting' : 'init',
       hasSession: !!props.session,
       sessID: props.session?.sessID || ''
     }
@@ -35,9 +32,9 @@ export default class SelfWindow extends Component<IProps, IState> {
 
   async tryAutoConn () {
     try {
-      const result = await sessionUtils.joinMeeting(this.props.session!, this.props.connector)
+      const result = await sessionUtils.joinMeeting(this.state.sessID)
       console.log('try auto', result)
-      if (this.state.isHost) {
+      if (this.props.isHost) {
         this.props.updateVideoLinkInfo({sessID: result.sessID, pass: result.pass})
       }
     } catch (error) {
@@ -45,27 +42,25 @@ export default class SelfWindow extends Component<IProps, IState> {
     }
   }
 
-  watchPeer = (sessID: string) => {
-    sessionUtils.watchSession(sessID, (clients: sessionUtils.IClient[]) => {
-      const conn = this.props.connector
-      sessionUtils.connect2peer(conn.peer, conn.client.id, clients)
-    })
+  watchPeer = (docID: string) => {
+    sessionUtils.watchSession(docID, peers.onTicketsChange)
   }
 
   onJoinMeeting = async (vals: any) => {
     try {
-      const result = await sessionUtils.joinMeeting(this.props.session!, this.props.connector, vals.pass)
+      const result = await sessionUtils.joinMeeting(this.state.sessID, vals.pass)
       if (!result.code) {
         this.setState({status: 'waiting'})
+        this.watchPeer(result.data.docID)
       }
       return result
     } catch (error) {
-      console.log('failed to auto join', error)
+      console.log('failed join', error)
     }
   }
 
   onCreateMeeting = async (options: sessionUtils.IMeetingMeta) => {
-    const result = await sessionUtils.createSession(this.props.connector.client, options)
+    const result = await sessionUtils.createMeeting(options)
     location.hash = result.sessID
     this.setState({status: 'waiting'})
     this.watchPeer(result.id)
@@ -77,13 +72,12 @@ export default class SelfWindow extends Component<IProps, IState> {
     switch (this.state.status) {
       case 'init':
         if (this.state.hasSession) {
-          return <EnterMeeting session={this.props.session!} onSubmit={this.onJoinMeeting}/>
+          return <JoinMeeting session={this.props.session!} onSubmit={this.onJoinMeeting}/>
         }
         return <CreateMeeting onSubmit={this.onCreateMeeting}/>
-      // case 'waiting':
-      //   return <WaitingView />
       default:
-        return <MeetingWindow peer={this.props.connector.peer}/>
+        return null
+        // return <MeetingWindow peer={this.props.connector.peer}/>
     }
   }
 }
@@ -94,7 +88,7 @@ interface IEnterMeetingProps {
   onSubmit: (val: any) => any
 }
 
-function EnterMeeting(props: IEnterMeetingProps) {
+function JoinMeeting(props: IEnterMeetingProps) {
   const layout = {
     labelCol: {
       span: 8

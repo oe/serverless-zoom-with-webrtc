@@ -1,19 +1,22 @@
 import React, { Component } from 'react'
 import { message, Row, Col, Spin} from 'antd'
-import * as sessionUtils from './api'
+import * as api from './api'
 import MeetingWindow from './video-window'
-import JoinCreateView from './join-create-view'
-import Peer from 'simple-peer'
+// import JoinCreateView from './join-create-view'
+import * as utils from './utils'
+
+const JoinCreateView = <div>ssss</div>
+
+interface IProps {
+  setReady: Function
+}
 
 interface IState {
   isInited: boolean
-  hasSession: boolean
-  sessID: string
-  session: sessionUtils.ISessionDigest | null
-  connector?: sessionUtils.ILocalConnector
-
-  isHost: boolean
+  sessID?: string
+  session?: api.ISessionDigest
   pass?: string
+  isHost: boolean
 }
 
 interface IInviteLink {
@@ -21,68 +24,41 @@ interface IInviteLink {
   pass?: string
 }
 
-export default class SessionView extends Component<{}, IState> {
-  constructor (props: {}) {
+export default class SessionView extends Component<IProps, IState> {
+  constructor (props: IProps) {
     super(props)
-    const sessID = location.hash.slice(1)
     
     this.state = {
       isInited: false,
-      hasSession: !!sessID,
-      sessID,
-      session: null,
       isHost: false
     }
   }
 
   async componentDidMount() {
+    const sessID = location.hash.slice(1)
     let newState: Partial<IState> = {}
-    if (this.state.hasSession) {
-      let sessionInfo: sessionUtils.ISessionDigest | null = null
-      try {
-        sessionInfo = await sessionUtils.getSessionInfo(this.state.sessID)
-      } catch (error) {
-        console.log('get session info failed', error)
-      }
-      if (!sessionInfo) {
-        location.hash = ''
-        newState = {
-          isInited: true,
-          hasSession: false,
-          sessID: ''
-        }
-      } else {
-        newState = {
-          isInited: true,
-          session: sessionInfo
-        }
-      }
+    if (sessID) {
+      const session = await api.getSessionInfo(sessID)
+      newState.session = session
+      newState.isHost = !!(session?.host === utils.getClientID())
     }
     newState.isInited = true
-    newState.connector = await sessionUtils.getLocalConn(true)
-    // is host
-    if (newState.session && newState.connector.client.id !== newState.session.host) {
-      const peer = new Peer()
-      sessionUtils.connect2peer(peer, newState.connector.client.id, newState.session!.clients)
-      newState.connector = await sessionUtils.getLocalConn(false, peer)
-    }
     // @ts-ignore
     this.setState(newState)
-    return
+    setTimeout(() => {
+      this.props.setReady('meeting')
+    }, 2000);
   }
 
   updateVideoLinkInfo = (info: IInviteLink) => {
     console.log('update video ', info)
     this.setState({
-      isHost: true,
       ...info
     })
   }
 
   render() {
-    if (!this.state.isInited) {
-      return <Spin tip="loading..." style={{width: '640px', height: '480px'}} > </Spin>
-    }
+    if (!this.state.isInited) return null
     return (
       <div>
         <Row gutter={16} justify="space-around">
@@ -90,7 +66,7 @@ export default class SessionView extends Component<{}, IState> {
             <MeetingWindow />
           </Col>
           <Col span={10}>
-            <JoinCreateView updateVideoLinkInfo={this.updateVideoLinkInfo} connector={this.state.connector!} session={this.state.session}/>
+            {/* <JoinCreateView session={this.state.session} updateVideoLinkInfo={this.updateVideoLinkInfo} isHost={this.state.isHost}/> */}
           </Col>
         </Row>
         {this.state.isHost && (<Row>

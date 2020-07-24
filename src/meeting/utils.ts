@@ -1,4 +1,3 @@
-import md5 from 'md5'
 
 export function isSupportRTC() {
   return !!navigator.mediaDevices
@@ -78,10 +77,26 @@ export function generateSessID() {
 }
 
 const CACHED_KEY = 'ONLINE-MEETING-CLIENT-ID'
-export function getClientID(connStr: string) {
+export function getClientID() {
   let id = localStorage.getItem(CACHED_KEY)
   if (id) return id
-  id = md5(connStr)
+  id = 'client-' + generateSessID()
   localStorage.setItem(CACHED_KEY, id)
   return id
+}
+
+export async function checkMediaPermission() {
+  if (navigator.permissions) {
+    const result = await Promise.all([
+      navigator.permissions.query({name: 'camera'}),
+      navigator.permissions.query({name: 'microphone'})
+    ])
+    if (result[0].state !== 'prompt') {
+      return result[0].state === 'granted' && result[1].state === 'granted'
+    }
+  }
+  const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
+  const result = stream.getAudioTracks().length && stream.getVideoTracks().length
+  revokeMediaStream(stream)
+  return result
 }

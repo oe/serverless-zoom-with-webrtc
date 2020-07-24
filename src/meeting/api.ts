@@ -10,15 +10,36 @@ export interface ISession {
   title: string
   /** created time */
   createdAt: number
-  /** last active time */
-  // lastActiveAt: number
+  /** client that ever connected to this session */
+  connectedClientIDs: string[]
+  /** temp */
+  creatorTicket?: {
+    /** creator's ticket */
+    offer: ITicket
+    /** peer's ticket */
+    answer?: {
+      id: string
+      ticket: ITicket
+    }
+  }
   /** pass code, if none then null */
   pass: null | string
   /** host id */
   host: string
-  /** all client id */
-  clients: IClient[]
+  /** all ticket in the meeting */
+  ticketHouse: ITicketHouse
 }
+
+export type ITicketHouse = {
+  [clientID: string]: ITicketGroup
+}
+
+export type ITicketGroup = {
+  [peerID: string]: ITicket[]
+}
+
+export type ITicket = {}
+
 
 export interface IClient {
   id: string
@@ -27,8 +48,6 @@ export interface IClient {
   // mutedBy: 'owner' | 'self' | 'none'
   // isCameraOff: boolean
 }
-
-let conn: any = null
 
 const app = tcb.init({
   env: cfg.envId
@@ -44,42 +63,6 @@ async function signIn() {
   return true
 }
 
-export interface ILocalConnector {
-  isHost: boolean
-  peer: Peer.Instance
-  client: IClient
-}
-
-export async function getLocalConn(isHost: boolean = false, ipeer?: Peer.Instance) {
-  const peer = ipeer || new Peer({initiator: isHost})
-  const conn: any[] = []
-  return new Promise<ILocalConnector>((resolve) => {
-    peer.on('signal', data => {
-      console.warn('signal', data)
-      conn.push(data)
-      if (conn.length === 2) {
-        const connector = buildConn(peer, conn, isHost)
-        // @ts-ignore
-        window.connector = connector
-        resolve(connector)
-      }
-    })
-  })
-}
-
-function buildConn(peer: Peer.Instance, connObj: object[], isHost: boolean): ILocalConnector {
-  const conn = JSON.stringify(connObj)
-  const id = utils.getClientID(conn)
-  return {
-    isHost,
-    peer,
-    client: {
-      id,
-      conn
-    }
-  }
-}
-
 export interface ISessionDigest {
   /** session id */
   sessID: string
@@ -91,35 +74,44 @@ export interface ISessionDigest {
   hasPass: boolean
   /** host id */
   host: string
-  /** all client id */
-  clients: IClient[]
 }
 
+export let CACHED_SESSION_INFO: ISessionDigest | undefined
 export async function getSessionInfo(sessID: string) {
+  if (CACHED_SESSION_INFO && CACHED_SESSION_INFO.sessID === sessID) return CACHED_SESSION_INFO
   await signIn()
   const result = await tcb.callFunction({
     name: 'get-session',
     data: {
-      sessID
+      sessID,
+      clientID: utils.getClientID()
     }
   })
-  if (!result.result.code) return result.result.data as ISessionDigest
+  if (!result.result.code) {
+    CACHED_SESSION_INFO = result.result.data as ISessionDigest
+    return CACHED_SESSION_INFO
+  }
   throw new Error('get session failed ' + JSON.stringify(result))
 }
+
 
 export interface IMeetingMeta {
   title: string
   pass: string
 }
 
-export async function createSession(client: IClient, meta: IMeetingMeta) {
+export async function createMeeting(meta: IMeetingMeta) {
   await signIn()
+  const clientID = utils.getClientID()
   const session: ISession = {
     ...meta,
     sessID: utils.generateSessID(),
-    host: client.id,
+    connectedClientIDs: [clientID],
+    host: clientID,
     createdAt: Date.now(),
-    clients: [client]
+    ticketHouse: {
+      [clientID]: {}
+    }
   }
   const result = await tcb.callFunction({
     name: 'create-session',
@@ -130,8 +122,28 @@ export async function createSession(client: IClient, meta: IMeetingMeta) {
   return {sessID: session.sessID, id: result.result.data.id}
 }
 
+// export interface IUpdateTicketData {
+//   sessID: string
+//   ticketGroup: ITicketGroup
+//   clientID: string
+// }
+export async function updateTicket(ticketGroup: ITicketGroup) {
+  await signIn()
+  const data = {
+    sessID: CACHED_SESSION_INFO?.sessID,
+    clientID: utils.getClientID(),
+    ticketGroup
+  }
+  const result = await tcb.callFunction({
+    name: 'update-ticket',
+    data
+  })
+  return result.result
+}
+
 let watcher:any = null
-export async function watchSession(_id: string, onChange: (clients: IClient[]) => void) {
+export async function watchSession(_id: string, onChange: (ticketGroup: ITicketGroup) => void) {
+  console.log('start to watch db of doc id', _id)
   await signIn()
   watcher?.close()
   watcher = app.database().collection('sessions')
@@ -140,10 +152,10 @@ export async function watchSession(_id: string, onChange: (clients: IClient[]) =
       onChange: (snapshot) => {
         console.error(snapshot)
         if (!snapshot.docs.length) return
-        onChange(snapshot.docs[0].clients)
+        onChange(snapshot.docs[0].ticketHouse[utils.getClientID()])
       },
       onError: (err) => {
-        console.log('watch error')
+        console.log('watch error', err)
       }
     })
 }
@@ -159,20 +171,17 @@ export function connect2peer(peer: Peer.Instance, selfID: string, clients: IClie
   return true
 }
 
-export async function joinMeeting (session: ISessionDigest, localConn: ILocalConnector, pass?: string) {
+export async function joinMeeting (sessID: string, pass?: string) {
   await signIn()
   const result = await tcb.callFunction({
     name: 'join-session',
     data: {
       pass,
-      sessID: session.sessID,
-      client: localConn.client
+      sessID: sessID,
+      clientID: utils.getClientID()
     }
   })
   console.log('join meeting', result.result)
-  if (!result.result.code) {
-    connect2peer(localConn.peer, localConn.client.id, result.result.data.clients)
-  }
   return result.result
 }
 // @ts-ignore

@@ -2,8 +2,8 @@
 import React from 'react'
 import { hot } from "react-hot-loader/root"
 import * as utils from './meeting/utils'
-import NotSupport from './Not-Support'
-import Session from './meeting'
+import Landing from './landing'
+import Meeting from './meeting'
 
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
 
 interface IState {
   isSupportRTC: boolean
+  readyState: string
   hasPermission: boolean
 }
 
@@ -20,6 +21,7 @@ class App extends React.Component<Props, IState> {
     super(props)
     this.state = {
       isSupportRTC: utils.isSupportRTC(),
+      readyState: 'init',
       hasPermission: false
     }
   }
@@ -29,9 +31,15 @@ class App extends React.Component<Props, IState> {
       hasPermission: hasPerm
     })
   }
+  setReady = (status: string) => {
+    this.setState({readyState: status})
+  }
   render() {
-    if (!this.state.isSupportRTC) return <NotSupport />
-    return <Session />
+    return (<>
+    {(!this.state.isSupportRTC || this.state.readyState !== 'meeting') && <Landing supportRTC={this.state.isSupportRTC} setReady={this.setReady}/>}
+
+    {this.state.readyState !== 'init' && <Meeting setReady={this.setReady}/>}
+    </>)
   }
 }
 

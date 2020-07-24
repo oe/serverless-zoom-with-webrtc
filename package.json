@@ -13,6 +13,7 @@
     "dev": "webpack-dev-server --hot --mode development"
   },
   "dependencies": {
+    "@ant-design/icons": "^4.2.1",
     "@types/md5": "^2.2.0",
     "@types/simple-peer": "^9.6.0",
     "antd": "^4.4.2",
