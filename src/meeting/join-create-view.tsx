@@ -18,7 +18,6 @@ interface IState {
 export default class SelfWindow extends Component<IProps, IState> {
   constructor (props: IProps) {
     super(props)
-
     this.state = {
       status: props.isHost ? 'waiting' : 'init',
       hasSession: !!props.session,
@@ -61,6 +60,7 @@ export default class SelfWindow extends Component<IProps, IState> {
 
   onCreateMeeting = async (options: sessionUtils.IMeetingMeta) => {
     const result = await sessionUtils.createMeeting(options)
+    peers.createPeer(true, '#1')
     location.hash = result.sessID
     this.setState({status: 'waiting'})
     this.watchPeer(result.id)

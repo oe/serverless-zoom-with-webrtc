@@ -30,7 +30,7 @@ interface IStreamChange {
 type IStreamChangeCb = (e: IStreamChange) => void
 const STREAM_CHANGE_CBS: IStreamChangeCb[] = []
 
-export function onStreamChange(cb: IStreamChangeCb) {
+export function listenStreamChange(cb: IStreamChangeCb) {
   if (STREAM_CHANGE_CBS.includes(cb)) return
   STREAM_CHANGE_CBS.push(cb)
 }
@@ -86,15 +86,15 @@ export function getClientID() {
 }
 
 export async function checkMediaPermission() {
-  if (navigator.permissions) {
-    const result = await Promise.all([
-      navigator.permissions.query({name: 'camera'}),
-      navigator.permissions.query({name: 'microphone'})
-    ])
-    if (result[0].state !== 'prompt') {
-      return result[0].state === 'granted' && result[1].state === 'granted'
-    }
-  }
+  // if (navigator.permissions) {
+  //   const result = await Promise.all([
+  //     navigator.permissions.query({name: 'camera'}),
+  //     navigator.permissions.query({name: 'microphone'})
+  //   ])
+  //   if (result[0].state !== 'prompt') {
+  //     return result[0].state === 'granted' && result[1].state === 'granted'
+  //   }
+  // }
   const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
   const result = stream.getAudioTracks().length && stream.getVideoTracks().length
   revokeMediaStream(stream)

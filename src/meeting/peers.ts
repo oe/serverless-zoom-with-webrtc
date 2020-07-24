@@ -2,19 +2,18 @@ import Peer from 'simple-peer'
 import * as utils from './utils'
 import * as api from './api'
 
-// declare namespace SimplePeer {
-//   interface Instance {
-//     peerID?: string
-//   }
-// }
+
+export interface PeerInstance extends Peer.Instance {
+  peerID?: string
+}
 
 type IPeers = {
-  [clientID: string]: Peer.Instance
+  [clientID: string]: PeerInstance
 }
 
 export interface ILocalConnector {
   isHost: boolean
-  peer: Peer.Instance
+  peer: PeerInstance
   client: IClient
 }
 
@@ -24,7 +23,7 @@ export interface IClient {
   conn: string
 }
 
-export type IPeerChangedCb = (peer: Peer.Instance) => void
+export type IPeerChangedCb = (peer: PeerInstance) => void
 export const PEERS: IPeers = {}
 
 let peerCreatedCb: IPeerChangedCb | undefined
@@ -68,11 +67,11 @@ export async function createPeer(initiator: boolean, peerID: string) {
   return peer
 }
 
-export function onPeerCreated(cb: IPeerChangedCb) {
+export function listenPeerCreated(cb: IPeerChangedCb) {
   peerCreatedCb = cb
 }
 
-export function onPeerClosed(cb: IPeerChangedCb) {
+export function listenPeerClosed(cb: IPeerChangedCb) {
   peerClosedCb = cb
 }
 
@@ -103,9 +102,48 @@ function updateTicket(signal: any, peerID: string) {
   }, 100);
 }
 
-utils.onStreamChange((change) => {
+utils.listenStreamChange((change) => {
   Object.values(PEERS).forEach(peer => {
     if (change.oldValue) peer.removeStream(change.oldValue)
     peer.addStream(change.newValue)
   })
 })
+
+
+export async function tryAutoJoin(session: api.ISession) {
+  const clientID = utils.getClientID()
+  // client never connected before
+  if (!session.connectedClientIDs.includes(clientID)) {
+    console.warn('[tryAutoJoin] current client never connected to this meeting before')
+    return
+  }
+  const allClientIDs = Object.keys(session.ticketHouse)
+  const peerIDs = allClientIDs.filter(c => c !== clientID)
+  if (!peerIDs.length) {
+    // is host
+    createPeer(true, '#1')
+    return
+    if (peerIDs.length === 1 && session.host === peerIDs[0]) {
+
+    }
+  }
+  // the second one to enter the meeting
+  if (peerIDs.length === 1) {
+    // only one peer, but not the host peer, aka is the last disconnected peer
+    if (peerIDs[0] !== session.host) {
+      createPeer(true, '#1')
+      return
+    }
+    if (session.firstClientTicket?.offer.id === peerIDs[0]) {
+      const peer = await createPeer(false, session.host)
+      session.firstClientTicket?.offer.ticket.forEach(f => {
+        peer.signal(f)
+      })
+      return
+    }
+  }
+  peerIDs.forEach(id => {
+    createPeer(true, id)
+  })
+  return
+}

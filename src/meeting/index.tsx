@@ -1,14 +1,20 @@
 import React, { Component } from 'react'
-import { message, Row, Col, Spin} from 'antd'
+import { Row, Col, Spin} from 'antd'
+import Peer from 'simple-peer'
 import * as api from './api'
 import MeetingWindow from './video-window'
-// import JoinCreateView from './join-create-view'
+import JoinCreateView from './join-create-view'
 import * as utils from './utils'
+import * as peers from './peers'
 
-const JoinCreateView = <div>ssss</div>
 
 interface IProps {
   setReady: Function
+}
+
+interface IPeerConn {
+  peer: peers.PeerInstance
+  status: 'connecting' | 'connected'
 }
 
 interface IState {
@@ -17,6 +23,7 @@ interface IState {
   session?: api.ISessionDigest
   pass?: string
   isHost: boolean
+  peerConns: IPeerConn[]
 }
 
 interface IInviteLink {
@@ -30,8 +37,11 @@ export default class SessionView extends Component<IProps, IState> {
     
     this.state = {
       isInited: false,
-      isHost: false
+      isHost: false,
+      peerConns: []
     }
+    peers.listenPeerCreated(this.onPeerCreated)
+    peers.listenPeerClosed(this.onPeerClosed)
   }
 
   async componentDidMount() {
@@ -47,7 +57,40 @@ export default class SessionView extends Component<IProps, IState> {
     this.setState(newState)
     setTimeout(() => {
       this.props.setReady('meeting')
-    }, 2000);
+    }, 2000)
+  }
+  
+  onPeerCreated = (peer: peers.PeerInstance) =>{
+    let peerConns = this.state.peerConns.slice(0)
+    // @ts-ignore
+    const idx = peerConns.findIndex(item => item.peer.peerID === peer.peerID)
+    if (idx === -1) {
+      peerConns.push({peer, status: 'connecting'})
+    } else {
+      peerConns[idx] = {peer, status: 'connecting'}
+    }
+    this.setState({peerConns})
+  }
+
+  onPeerClosed = (peer: peers.PeerInstance) => {
+    let peerConns = this.state.peerConns.slice(0)
+    // @ts-ignore
+    const idx = peerConns.findIndex(item => item.peer.peerID === peer.peerID)
+    if (idx !== -1) {
+      peerConns.splice(idx, 1)
+      this.setState({peerConns})
+    }
+  }
+
+  setPeerReady = (peerID: string) => {
+    let peerConns = this.state.peerConns.slice(0)
+    // @ts-ignore
+    const idx = peerConns.findIndex(item => item.peer.peerID === peerID)
+    if (idx !== -1) {
+      const peerConn = peerConns[idx]
+      peerConns[idx] = {peer: peerConn.peer, status: 'connected'}
+      this.setState({peerConns})
+    }
   }
 
   updateVideoLinkInfo = (info: IInviteLink) => {
@@ -65,8 +108,13 @@ export default class SessionView extends Component<IProps, IState> {
           <Col span={10} >
             <MeetingWindow />
           </Col>
+          {this.state.peerConns.map(pc => {
+            return (<Col span={10} style={{display: pc.status === 'connecting' ? 'none' : 'block'}}>
+              <MeetingWindow key={pc.peer.peerID} peer={pc.peer}/>
+            </Col>)
+          })}
           <Col span={10}>
-            {/* <JoinCreateView session={this.state.session} updateVideoLinkInfo={this.updateVideoLinkInfo} isHost={this.state.isHost}/> */}
+            <JoinCreateView session={this.state.session} updateVideoLinkInfo={this.updateVideoLinkInfo} isHost={this.state.isHost}/>
           </Col>
         </Row>
         {this.state.isHost && (<Row>

@@ -34,9 +34,12 @@ exports.main = async function (evt) {
         if (session.host !== clientID) {
           throw new Error(`peer client id is invalid, #1 for host only`)
         }
+        if (session.firstClientTicket && session.firstClientTicket.offer.id !== evt.clientID) {
+          session.firstClientTicket = { offer: { id: clientID, ticket: []}}
+        }
         // if no peer id, than store it in creator Ticket
-        const creatorTicket = session.creatorTicket || { offer: []}
-        creatorTicket.offer.push(...ticket)
+        const creatorTicket = session.firstClientTicket || { offer: { id: clientID, ticket: []}}
+        creatorTicket.offer.ticket.push(...ticket)
         chunk.creatorTicket = creatorTicket
       } else {
         const peerTickets = session.ticketHouse[evt.peerID] || {}
@@ -47,6 +50,9 @@ exports.main = async function (evt) {
         chunk.ticketHouse = session.ticketHouse
       }
     })
+
+    clearUnusedTickets(session)
+    chunk.ticketHouse = session.ticketHouse
 
     await db.collection('sessions').doc(session._id).update(chunk)
 
@@ -60,4 +66,9 @@ exports.main = async function (evt) {
       extra: error
     }
   }
+}
+
+
+function clearUnusedTickets (session) {
+
 }

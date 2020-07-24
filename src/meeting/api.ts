@@ -13,13 +13,16 @@ export interface ISession {
   /** client that ever connected to this session */
   connectedClientIDs: string[]
   /** temp */
-  creatorTicket?: {
+  firstClientTicket?: {
     /** creator's ticket */
-    offer: ITicket
+    offer: {
+      id: string
+      ticket: ITicket[]
+    }
     /** peer's ticket */
     answer?: {
       id: string
-      ticket: ITicket
+      ticket: ITicket[]
     }
   }
   /** pass code, if none then null */

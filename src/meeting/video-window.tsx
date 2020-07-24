@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
-import Peer from 'simple-peer'
+import * as peers from './peers'
 import * as utils from './utils'
 
+
 interface IProps {
-  peer?: Peer.Instance
+  peer?: peers.PeerInstance
 }
 
 interface IState {
