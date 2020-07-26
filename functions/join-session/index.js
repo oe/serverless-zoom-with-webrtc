@@ -50,18 +50,18 @@ exports.main = async function (evt) {
       chunk.connectedClientIDs = session.connectedClientIDs
     }
     // creator's offer no answer
-    if (session.creatorTicket && !session.creatorTicket.answer) {
-      session.creatorTicket.answer = {id: clientID}
+    if (session.firstClientTicket && !session.firstClientTicket.answer) {
+      session.firstClientTicket.answer = {id: clientID}
 
-      if (session.ticketHouse[clientID] || !session.creatorTicket.offer) {
+      if (session.ticketHouse[clientID] || !session.firstClientTicket.offer) {
         throw new Error('inner error')
       }
 
       session.ticketHouse[clientID] = {
-        [session.host]: session.creatorTicket.offer
+        [session.host]: session.firstClientTicket.offer.ticket
       }
 
-      chunk.creatorTicket = session.creatorTicket
+      chunk.firstClientTicket = session.firstClientTicket
       chunk.ticketHouse = session.ticketHouse
     } else {
       session.ticketHouse[clientID] = {}
@@ -71,13 +71,10 @@ exports.main = async function (evt) {
     await db.collection('sessions').doc(session._id).update(chunk)
     // get all connected client id
     const allConnectedClientIDs = Object.keys(session.ticketHouse)
-
+    delete session.pass
     return {
       code: 0,
-      data: {
-        docID: session._id,
-        peerIDs: allConnectedClientIDs
-      }
+      data: session
     }
   } catch (error) {
     return {

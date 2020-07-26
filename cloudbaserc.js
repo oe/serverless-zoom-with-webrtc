@@ -3,14 +3,14 @@ module.exports = {
 
   "framework": {
     "plugins": {
-      // "client": {
-      //   "use": "@cloudbase/framework-plugin-website",
-      //   "inputs": {
-      //     "buildCommand": "npm run build",
-      //     "outputPath": "dist",
-      //     "cloudPath": "/online-meeting"
-      //   }
-      // },
+      "client": {
+        "use": "@cloudbase/framework-plugin-website",
+        "inputs": {
+          "buildCommand": "npm run build",
+          "outputPath": "dist",
+          "cloudPath": "/online-meeting"
+        }
+      },
       "server": {
         "use": "@cloudbase/framework-plugin-function",
         "inputs": {
@@ -39,6 +39,13 @@ module.exports = {
             },
             {
               name: "create-session",
+              timeout: 5,
+              runtime: 'Nodejs10.15',
+              memorySize: 128,
+              installDependency: true
+            },
+            {
+              name: "update-ticket",
               timeout: 5,
               runtime: 'Nodejs10.15',
               memorySize: 128,

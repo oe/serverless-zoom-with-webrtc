@@ -96,7 +96,8 @@ export default class SessionView extends Component<IProps, IState> {
   updateVideoLinkInfo = (info: IInviteLink) => {
     console.log('update video ', info)
     this.setState({
-      ...info
+      ...info,
+      isHost: true
     })
   }
 
@@ -109,8 +110,8 @@ export default class SessionView extends Component<IProps, IState> {
             <MeetingWindow />
           </Col>
           {this.state.peerConns.map(pc => {
-            return (<Col span={10} style={{display: pc.status === 'connecting' ? 'none' : 'block'}}>
-              <MeetingWindow key={pc.peer.peerID} peer={pc.peer}/>
+            return (<Col key={pc.peer.peerID} span={10} style={{display: pc.status === 'connecting' ? 'none' : 'block'}}>
+              <MeetingWindow peer={pc.peer}/>
             </Col>)
           })}
           <Col span={10}>

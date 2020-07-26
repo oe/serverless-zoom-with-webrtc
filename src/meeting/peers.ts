@@ -78,11 +78,15 @@ export function listenPeerClosed(cb: IPeerChangedCb) {
 export function onTicketsChange(changes: api.ITicketGroup) {
   Object.keys(changes).forEach(peerID => {
     const ticket = changes[peerID]
-    const peer = PEERS[peerID]
+    let peer = PEERS[peerID]
+    if (!peer ) {
+      peer = PEERS['#1']
+    }
     if (!peer) {
       console.warn(`can not find peer of ${peerID}`)
       return
     }
+    console.warn('signal', ticket)
     ticket.forEach(item => peer.signal(item))
   })
 }
@@ -93,12 +97,18 @@ let tid = 0
 function updateTicket(signal: any, peerID: string) {
   const c = cachedTicket[peerID] || []
   c.push(signal)
+  cachedTicket[peerID] = c
   clearTimeout(tid)
   // @ts-ignore
-  tid = setTimeout(() => {
+  tid = setTimeout(async () => {
     const data = cachedTicket
     cachedTicket = {}
-    api.updateTicket(data)
+    try {
+      const result = await api.updateTicket(data)
+      console.warn('[updateTicket] success', result)
+    } catch (error) {
+      console.warn('[updateTicket] failed', error)
+    }
   }, 100);
 }
 
@@ -115,35 +125,36 @@ export async function tryAutoJoin(session: api.ISession) {
   // client never connected before
   if (!session.connectedClientIDs.includes(clientID)) {
     console.warn('[tryAutoJoin] current client never connected to this meeting before')
-    return
+    return false
   }
   const allClientIDs = Object.keys(session.ticketHouse)
   const peerIDs = allClientIDs.filter(c => c !== clientID)
   if (!peerIDs.length) {
     // is host
     createPeer(true, '#1')
-    return
-    if (peerIDs.length === 1 && session.host === peerIDs[0]) {
-
-    }
+    return true
+    // 
+    // if (peerIDs.length === 1 && session.host === peerIDs[0]) {
+    //   return true
+    // }
   }
   // the second one to enter the meeting
   if (peerIDs.length === 1) {
     // only one peer, but not the host peer, aka is the last disconnected peer
     if (peerIDs[0] !== session.host) {
       createPeer(true, '#1')
-      return
+      return true
     }
     if (session.firstClientTicket?.offer.id === peerIDs[0]) {
       const peer = await createPeer(false, session.host)
       session.firstClientTicket?.offer.ticket.forEach(f => {
         peer.signal(f)
       })
-      return
+      return true
     }
   }
   peerIDs.forEach(id => {
     createPeer(true, id)
   })
-  return
+  return true
 }

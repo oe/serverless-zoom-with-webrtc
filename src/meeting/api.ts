@@ -122,6 +122,8 @@ export async function createMeeting(meta: IMeetingMeta) {
   })
   console.log('create meeting', result)
   if (result.result.code) throw new Error('failed to create meeting ' + JSON.stringify(result.result))
+  // @ts-ignore
+  CACHED_SESSION_INFO = session
   return {sessID: session.sessID, id: result.result.data.id}
 }
 
@@ -137,6 +139,7 @@ export async function updateTicket(ticketGroup: ITicketGroup) {
     clientID: utils.getClientID(),
     ticketGroup
   }
+  console.log('update ticket', data)
   const result = await tcb.callFunction({
     name: 'update-ticket',
     data
@@ -154,7 +157,11 @@ export async function watchSession(_id: string, onChange: (ticketGroup: ITicketG
     .watch({
       onChange: (snapshot) => {
         console.error(snapshot)
-        if (!snapshot.docs.length) return
+        if (!snapshot.docs.length ||
+          !snapshot.docs[0] ||
+          !snapshot.docs[0].ticketHouse ||
+          !snapshot.docs[0].ticketHouse[utils.getClientID()]
+          ) return
         onChange(snapshot.docs[0].ticketHouse[utils.getClientID()])
       },
       onError: (err) => {

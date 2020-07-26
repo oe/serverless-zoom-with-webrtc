@@ -30,7 +30,7 @@ exports.main = async function (evt) {
     Object.keys(ticketGroup).forEach((peerID) => {
       const ticket = ticketGroup[peerID]
       // is from host
-      if (evt.peerID === '#1') {
+      if (peerID === '#1') {
         if (session.host !== clientID) {
           throw new Error(`peer client id is invalid, #1 for host only`)
         }
@@ -38,9 +38,9 @@ exports.main = async function (evt) {
           session.firstClientTicket = { offer: { id: clientID, ticket: []}}
         }
         // if no peer id, than store it in creator Ticket
-        const creatorTicket = session.firstClientTicket || { offer: { id: clientID, ticket: []}}
-        creatorTicket.offer.ticket.push(...ticket)
-        chunk.creatorTicket = creatorTicket
+        const firstClientTicket = session.firstClientTicket || { offer: { id: clientID, ticket: []}}
+        firstClientTicket.offer.ticket.push(...ticket)
+        chunk.firstClientTicket = firstClientTicket
       } else {
         const peerTickets = session.ticketHouse[evt.peerID] || {}
         const clientTicket = peerTickets[clientID] || []
@@ -48,6 +48,15 @@ exports.main = async function (evt) {
         peerTickets[clientID] = clientTicket
         session.ticketHouse[peerID] = peerTickets
         chunk.ticketHouse = session.ticketHouse
+      }
+
+      if (session.firstClientTicket &&
+        session.firstClientTicket.answer &&
+        peerID == session.firstClientTicket.answer.id) {
+      
+        const answerTicket = session.firstClientTicket.answer.ticket || []
+        answerTicket.push(...ticket)
+        chunk.firstClientTicket = firstClientTicket
       }
     })
 
@@ -57,7 +66,9 @@ exports.main = async function (evt) {
     await db.collection('sessions').doc(session._id).update(chunk)
 
     return {
-      code: 0
+      code: 0, 
+      data: chunk,
+      evt
     }
   } catch (error) {
     return {
@@ -70,5 +81,16 @@ exports.main = async function (evt) {
 
 
 function clearUnusedTickets (session) {
-
+  const ticketHouse = session.ticketHouse
+  Object.keys(ticketHouse).forEach(clientID => {
+    const ticketGroup = ticketHouse[clientID]
+    Object.keys(ticketGroup).forEach(peerID => {
+      // remove old offer or answer
+      let tickets = ticketGroup[peerID].reverse()
+      const idx = tickets.findIndex(item => item.type === 'offer' || item.type === 'answer')
+      if (idx === -1) return
+      tickets = tickets.slice(0, idx + 1)
+      ticketGroup[peerID] = tickets.reverse()
+    })
+  })
 }

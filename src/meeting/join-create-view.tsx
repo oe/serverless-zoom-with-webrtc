@@ -26,20 +26,20 @@ export default class SelfWindow extends Component<IProps, IState> {
   }
 
   async componentDidMount() {
-    this.state.hasSession && this.tryAutoConn()
+    // this.state.hasSession && this.tryAutoConn()
   }
 
-  async tryAutoConn () {
-    try {
-      const result = await sessionUtils.joinMeeting(this.state.sessID)
-      console.log('try auto', result)
-      if (this.props.isHost) {
-        this.props.updateVideoLinkInfo({sessID: result.sessID, pass: result.pass})
-      }
-    } catch (error) {
-      console.log('failed to auto join', error)
-    }
-  }
+  // async tryAutoConn () {
+  //   try {
+  //     const result = await sessionUtils.joinMeeting(this.state.sessID)
+  //     console.log('try auto', result)
+  //     if (this.props.isHost) {
+  //       this.props.updateVideoLinkInfo({sessID: result.sessID, pass: result.pass})
+  //     }
+  //   } catch (error) {
+  //     console.log('failed to auto join', error)
+  //   }
+  // }
 
   watchPeer = (docID: string) => {
     sessionUtils.watchSession(docID, peers.onTicketsChange)
@@ -49,8 +49,9 @@ export default class SelfWindow extends Component<IProps, IState> {
     try {
       const result = await sessionUtils.joinMeeting(this.state.sessID, vals.pass)
       if (!result.code) {
+        await peers.tryAutoJoin(result.data)
+        this.watchPeer(result.data._id)
         this.setState({status: 'waiting'})
-        this.watchPeer(result.data.docID)
       }
       return result
     } catch (error) {
@@ -64,6 +65,7 @@ export default class SelfWindow extends Component<IProps, IState> {
     location.hash = result.sessID
     this.setState({status: 'waiting'})
     this.watchPeer(result.id)
+    
     this.props.updateVideoLinkInfo({sessID: result.sessID, pass: options.pass})
     return true
   }
