@@ -23,10 +23,13 @@ exports.main = async function (evt) {
     
     if (!sessions.data || !sessions.data.length) throw new Error(`meeting #${evt.sessID} not exists`)
 
+    const clientID = evt.clientID
     const session = sessions.data[0]
+    clearUsedTickets(session, clientID)
+
+    const originalSession = JSON.parse(JSON.stringify(session))
     const chunk = {}
     const ticketGroup = evt.ticketGroup
-    const clientID = evt.clientID
     Object.keys(ticketGroup).forEach((peerID) => {
       const ticket = ticketGroup[peerID]
       // is from host
@@ -34,7 +37,7 @@ exports.main = async function (evt) {
         if (session.host !== clientID) {
           throw new Error(`peer client id is invalid, #1 for host only`)
         }
-        if (session.firstClientTicket && session.firstClientTicket.offer.id !== evt.clientID) {
+        if (session.firstClientTicket && session.firstClientTicket.offer.id !== clientID) {
           session.firstClientTicket = { offer: { id: clientID, ticket: []}}
         }
         // if no peer id, than store it in creator Ticket
@@ -60,7 +63,7 @@ exports.main = async function (evt) {
       }
     })
 
-    clearUnusedTickets(session)
+    clearUnusedTickets(session, clientID)
     chunk.ticketHouse = session.ticketHouse
 
     await db.collection('sessions').doc(session._id).update(chunk)
@@ -68,6 +71,7 @@ exports.main = async function (evt) {
     return {
       code: 0, 
       data: chunk,
+      originalSession,
       evt
     }
   } catch (error) {
@@ -79,11 +83,22 @@ exports.main = async function (evt) {
   }
 }
 
-
-function clearUnusedTickets (session) {
+function clearUsedTickets (session, clientID) {
   const ticketHouse = session.ticketHouse
-  Object.keys(ticketHouse).forEach(clientID => {
-    const ticketGroup = ticketHouse[clientID]
+  Object.keys(ticketHouse).forEach(cid => {
+    const ticketGroup = ticketHouse[cid]
+    Object.keys(ticketGroup).forEach(peerID => {
+      if (cid === clientID || peerID === clientID) {
+        ticketGroup[peerID] = []
+      }
+    })
+  })
+}
+
+function clearUnusedTickets (session, clientID) {
+  const ticketHouse = session.ticketHouse
+  Object.keys(ticketHouse).forEach(cid => {
+    const ticketGroup = ticketHouse[cid]
     Object.keys(ticketGroup).forEach(peerID => {
       // remove old offer or answer
       let tickets = ticketGroup[peerID].reverse()

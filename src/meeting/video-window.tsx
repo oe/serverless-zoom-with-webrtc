@@ -5,6 +5,7 @@ import * as utils from './utils'
 
 interface IProps {
   peer?: peers.PeerInstance
+  setPeerReady?: (p: string) => void
 }
 
 interface IState {
@@ -43,7 +44,6 @@ export default class MeetingWindow extends Component<IProps, IState> {
 
   updateMediaStream() {
     if (this.props.peer) {
-      this.props.peer.off('stream', this.onGetStream)
       this.props.peer.on('stream', this.onGetStream)
       return
     }
@@ -51,7 +51,9 @@ export default class MeetingWindow extends Component<IProps, IState> {
   }
 
   onGetStream = (stream: MediaStream) => {
-    console.error('get stream', this.props.peer)
+    if (this.props.peer && this.props.setPeerReady) {
+      this.props.setPeerReady(this.props.peer.peerID!)
+    }
     this.updateStream(stream)
     this.streamCbs.forEach(cb => cb(stream))
   }

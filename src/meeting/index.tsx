@@ -111,7 +111,7 @@ export default class SessionView extends Component<IProps, IState> {
           </Col>
           {this.state.peerConns.map(pc => {
             return (<Col key={pc.peer.peerID} span={10} style={{display: pc.status === 'connecting' ? 'none' : 'block'}}>
-              <MeetingWindow peer={pc.peer}/>
+              <MeetingWindow peer={pc.peer} setPeerReady={this.setPeerReady}/>
             </Col>)
           })}
           <Col span={10}>

@@ -4,7 +4,7 @@ import * as api from './api'
 
 
 export interface PeerInstance extends Peer.Instance {
-  peerID?: string
+  peerID: string
 }
 
 type IPeers = {
@@ -31,36 +31,36 @@ let peerClosedCb: IPeerChangedCb | undefined
 
 
 export async function createPeer(initiator: boolean, peerID: string) {
-  const peer = new Peer({initiator})
+  const peer = new Peer({initiator}) as PeerInstance
   const stream = await utils.getMediaStream({audio: true, video: true})
   peer.addStream(stream)
   // @ts-ignore
   peer.peerID = peerID
   peer.on('signal', (e) => {
-    console.log('signal', e)
+    console.log('[peer event]signal', e)
     // peerID with #1 for host
     // @ts-ignore
     updateTicket(e, peer.peerID)
   })
   peer.on('connect', (e) => {
-    console.log('connect', e)
+    console.log('[peer event]connect', e)
   })
   peer.on('data', (e) => {
-    console.log('data', e)
+    console.log('[peer event]data', e)
   })
   peer.on('stream', (e) => {
-    console.log('stream', e)
+    console.log('[peer event]stream', e)
     // streamChangedCb && streamChangedCb()
   })
   peer.on('track', (e) => {
-    console.log('track', e)
+    console.log('[peer event]track', e)
   })
   peer.on('close', () => {
-    console.log('close')
+    console.log('[peer event]close')
     peerClosedCb && peerClosedCb(peer)
   })
   peer.on('error', (e) => {
-    console.log('error', e)
+    console.log('[peer event]error', e)
   })
   peerCreatedCb && peerCreatedCb(peer)
   PEERS[peerID] = peer
