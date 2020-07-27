@@ -134,10 +134,10 @@ function WaitingView(props: IWaitingViewProps) {
   const url = location.origin + location.pathname + location.search + '#' + props.sessID
   const pass = props.pass ? ` passcode: ${props.pass}` : ''
   return (
-    <div style={{textAlign: 'center'}}>
+    <div>
       Meeting just created<br/>
       Please copy the following url and send it to your fellow<br />
-      <code>Meeting Url: {url} {pass}</code>
+      <div style={{background: '#eee',borderRadius: '10px',padding: '8px',textAlign: 'left'}}>Meeting Url: {url} <br /> {pass}</div>
     </div>
   )
 }
