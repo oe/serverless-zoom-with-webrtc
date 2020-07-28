@@ -12,7 +12,7 @@ interface Props {
 
 interface IState {
   isSupportRTC: boolean
-  readyState: string
+  isReady: boolean
   hasPermission: boolean
 }
 
@@ -21,7 +21,7 @@ class App extends React.Component<Props, IState> {
     super(props)
     this.state = {
       isSupportRTC: utils.isSupportRTC(),
-      readyState: 'init',
+      isReady: false,
       hasPermission: false
     }
   }
@@ -31,14 +31,14 @@ class App extends React.Component<Props, IState> {
       hasPermission: hasPerm
     })
   }
-  setReady = (status: string) => {
-    this.setState({readyState: status})
+  setReady = () => {
+    this.setState({isReady: true})
   }
   render() {
     return (<>
-    {(!this.state.isSupportRTC || this.state.readyState !== 'meeting') && <Landing supportRTC={this.state.isSupportRTC} setReady={this.setReady}/>}
+    {(!this.state.isSupportRTC || !this.state.isReady) && <Landing supportRTC={this.state.isSupportRTC} setReady={this.setReady}/>}
 
-    {this.state.readyState !== 'init' && <Meeting setReady={this.setReady}/>}
+    {this.state.isReady && <Meeting setReady={this.setReady}/>}
     </>)
   }
 }

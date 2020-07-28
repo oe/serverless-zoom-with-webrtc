@@ -81,4 +81,8 @@ export default class MeetingWindow extends Component<IProps, IState> {
       <video ref={this.videoRef} controls={!this.state.isSelf} width="640" height="480"></video>
     )
   }
+  componentWillUnmount () {
+    if (!this.props.peer) return
+    this.props.peer.off('stream', this.onGetStream)
+  }
 }

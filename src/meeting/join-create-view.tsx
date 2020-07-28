@@ -49,7 +49,7 @@ export default class SelfWindow extends Component<IProps, IState> {
     try {
       const result = await sessionUtils.joinMeeting(this.state.sessID, vals.pass)
       if (!result.code) {
-        await peers.tryAutoJoin(result.data)
+        await peers.tryJoinMeeting(result.data)
         this.watchPeer(result.data._id)
         this.setState({status: 'waiting'})
       }

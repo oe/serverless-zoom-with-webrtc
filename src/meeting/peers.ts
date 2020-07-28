@@ -4,6 +4,7 @@ import * as api from './api'
 
 
 export interface PeerInstance extends Peer.Instance {
+  id: string
   peerID: string
 }
 
@@ -34,7 +35,7 @@ export async function createPeer(initiator: boolean, peerID: string) {
   const peer = new Peer({initiator}) as PeerInstance
   const stream = await utils.getMediaStream({audio: true, video: true})
   peer.addStream(stream)
-  // @ts-ignore
+  peer.id = peerID
   peer.peerID = peerID
   peer.on('signal', (e) => {
     console.log('[peer event]signal', e)
@@ -58,6 +59,8 @@ export async function createPeer(initiator: boolean, peerID: string) {
   peer.on('close', () => {
     console.log('[peer event]close')
     peerClosedCb && peerClosedCb(peer)
+    // remove closed peer
+    delete PEERS[peer.peerID]
   })
   peer.on('error', (e) => {
     console.log('[peer event]error', e)
@@ -75,13 +78,18 @@ export function listenPeerClosed(cb: IPeerChangedCb) {
   peerClosedCb = cb
 }
 
-export function onTicketsChange(changes: api.ITicketGroup) {
+export function onTicketsChange(changes: api.ITicketGroup, firstPeerID: string) {
   Object.keys(changes).forEach(peerID => {
     const ticket = changes[peerID]
     let peer = PEERS[peerID]
-    if (!peer ) {
+    
+    if (!peer && firstPeerID === peerID) {
       peer = PEERS['#1']
+      peer.peerID = peerID
+      delete PEERS['#1']
+      PEERS[peerID] = peer
     }
+
     if (!peer) {
       console.warn(`can not find peer of ${peerID}`)
       return
@@ -120,7 +128,7 @@ utils.listenStreamChange((change) => {
 })
 
 
-export async function tryAutoJoin(session: api.ISession) {
+export async function tryJoinMeeting(session: api.ISession) {
   const clientID = utils.getClientID()
   // client never connected before
   if (!session.connectedClientIDs.includes(clientID)) {

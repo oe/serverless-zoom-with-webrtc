@@ -19,6 +19,8 @@ interface IPeerConn {
 
 interface IState {
   isInited: boolean
+  // if client auto joined, then should not show JoinCreateView
+  isAutoJoined: boolean
   sessID?: string
   session?: api.ISessionDigest
   pass?: string
@@ -36,6 +38,7 @@ export default class SessionView extends Component<IProps, IState> {
     super(props)
     
     this.state = {
+      isAutoJoined: false,
       isInited: false,
       isHost: false,
       peerConns: []
@@ -51,12 +54,14 @@ export default class SessionView extends Component<IProps, IState> {
       const session = await api.getSessionInfo(sessID)
       newState.session = session
       newState.isHost = !!(session?.host === utils.getClientID())
+      // @ts-ignore
+      newState.isAutoJoined = await peers.tryJoinMeeting(session)
     }
     newState.isInited = true
     // @ts-ignore
     this.setState(newState)
     setTimeout(() => {
-      this.props.setReady('meeting')
+      this.props.setReady()
     }, 2000)
   }
   
@@ -110,13 +115,14 @@ export default class SessionView extends Component<IProps, IState> {
             <MeetingWindow />
           </Col>
           {this.state.peerConns.map(pc => {
-            return (<Col key={pc.peer.peerID} span={10} style={{display: pc.status === 'connecting' ? 'none' : 'block'}}>
+            return (<Col key={pc.peer.id} span={10} style={{display: pc.status === 'connecting' ? 'none' : 'block'}}>
               <MeetingWindow peer={pc.peer} setPeerReady={this.setPeerReady}/>
             </Col>)
           })}
-          <Col span={10}>
+          {!this.state.isAutoJoined && (<Col span={10}>
             <JoinCreateView session={this.state.session} updateVideoLinkInfo={this.updateVideoLinkInfo} isHost={this.state.isHost}/>
-          </Col>
+          </Col>)}
+          
         </Row>
         {this.state.isHost && (<Row>
           <Col span={10} offset={8}><WaitingView sessID={this.state.sessID!} pass={this.state.pass}/></Col>

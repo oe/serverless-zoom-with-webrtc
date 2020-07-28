@@ -148,7 +148,7 @@ export async function updateTicket(ticketGroup: ITicketGroup) {
 }
 
 let watcher:any = null
-export async function watchSession(_id: string, onChange: (ticketGroup: ITicketGroup) => void) {
+export async function watchSession(_id: string, onChange: (ticketGroup: ITicketGroup, peerId: string) => void) {
   console.log('start to watch db of doc id', _id)
   await signIn()
   watcher?.close()
@@ -162,7 +162,8 @@ export async function watchSession(_id: string, onChange: (ticketGroup: ITicketG
           !snapshot.docs[0].ticketHouse ||
           !snapshot.docs[0].ticketHouse[utils.getClientID()]
           ) return
-        onChange(snapshot.docs[0].ticketHouse[utils.getClientID()])
+        const firstPeerID = snapshot.docs[0].firstClientTicket?.answer?.id || ''
+        onChange(snapshot.docs[0].ticketHouse[utils.getClientID()], firstPeerID)
       },
       onError: (err) => {
         console.log('watch error', err)
