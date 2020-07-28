@@ -1,5 +1,5 @@
 import tcb from 'tcb-js-sdk'
-import cfg from '../../cloudbaserc'
+// import cfg from '../../cloudbaserc'
 import Peer from 'simple-peer'
 import * as utils from './utils'
 
@@ -53,7 +53,7 @@ export interface IClient {
 }
 
 const app = tcb.init({
-  env: cfg.envId
+  env: 'tcb-demo-10cf5b'
 })
 
 const auth = app.auth({

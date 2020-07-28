@@ -1,6 +1,6 @@
+/* eslint-disable no-restricted-globals */
 import React, { Component } from 'react'
-import { Row, Col, Spin} from 'antd'
-import Peer from 'simple-peer'
+import { Row, Col} from 'antd'
 import * as api from './api'
 import MeetingWindow from './video-window'
 import JoinCreateView from './join-create-view'

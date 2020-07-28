@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react'
+/* eslint-disable no-restricted-globals */
 import { LoadingOutlined, WarningOutlined } from '@ant-design/icons'
+import React, { useEffect, useState } from 'react'
 import * as utils from './meeting/utils'
 import * as api from './meeting/api'
 
@@ -27,9 +28,10 @@ function NotReady(props: Pick<ILandingProps, 'setReady'>) {
   const [permissionState, setPermissionState] = useState<string>('prompt')
   const [timeCount, setTimeCount] = useState<number>(0)
   const [loadingState, setLoadingState] = useState<string>('init')
-  const retry = useCallback(() => {
+  
+  const retry = () => {
     setTimeCount(timeCount + 1)
-  }, [setTimeCount])
+  }
   
   const permissionStr:{[k: string]: any} = {
     prompt: <p>Please allow camera and microphone access to continue, you can turn off camera or microphone later in meeting</p>,
@@ -45,7 +47,7 @@ function NotReady(props: Pick<ILandingProps, 'setReady'>) {
       try {
         const sessID = location.hash.slice(1)
         if (sessID) {
-          const _ = await api.getSessionInfo(sessID)
+          await api.getSessionInfo(sessID)
         }
         props.setReady('landing')
       } catch (error) {

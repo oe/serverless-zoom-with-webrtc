@@ -1,6 +1,5 @@
 
 import React from 'react'
-import { hot } from "react-hot-loader/root"
 import * as utils from './meeting/utils'
 import Landing from './landing'
 import Meeting from './meeting'
@@ -16,7 +15,7 @@ interface IState {
   hasPermission: boolean
 }
 
-class App extends React.Component<Props, IState> {
+export default class App extends React.Component<Props, IState> {
   constructor (props: Props) {
     super(props)
     this.state = {
@@ -43,4 +42,3 @@ class App extends React.Component<Props, IState> {
   }
 }
 
-export default hot(App);

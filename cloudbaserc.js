@@ -7,7 +7,7 @@ module.exports = {
         "use": "@cloudbase/framework-plugin-website",
         "inputs": {
           "buildCommand": "npm run build",
-          "outputPath": "dist",
+          "outputPath": "build",
           "cloudPath": "/online-meeting"
         }
       },

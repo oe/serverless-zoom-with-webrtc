@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 import React, { Component, useState, useCallback } from 'react'
 import { message, Form, Input, Button } from 'antd'
 import * as sessionUtils from './api'
