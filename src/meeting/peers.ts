@@ -79,20 +79,23 @@ export function listenPeerClosed(cb: IPeerChangedCb) {
 }
 
 export function onTicketsChange(changes: api.ITicketGroup, firstPeerID: string) {
-  Object.keys(changes).forEach(peerID => {
+  Object.keys(changes).forEach(async peerID => {
     const ticket = changes[peerID]
     let peer = PEERS[peerID]
     
     if (!peer && firstPeerID === peerID) {
       peer = PEERS['#1']
-      peer.peerID = peerID
-      delete PEERS['#1']
-      PEERS[peerID] = peer
+      if (peer) {
+        peer.peerID = peerID
+        delete PEERS['#1']
+        PEERS[peerID] = peer
+      }
     }
 
     if (!peer) {
-      console.warn(`can not find peer of ${peerID}`)
-      return
+      peer = await createPeer(false, peerID)
+      // console.warn(`can not find peer of ${peerID}`)
+      // return
     }
     console.warn('signal', ticket)
     ticket.forEach(item => peer.signal(item))
@@ -135,16 +138,13 @@ export async function tryJoinMeeting(session: api.ISession) {
     console.warn('[tryAutoJoin] current client never connected to this meeting before')
     return false
   }
+  console.warn('try join meeting', session)
   const allClientIDs = Object.keys(session.ticketHouse)
   const peerIDs = allClientIDs.filter(c => c !== clientID)
   if (!peerIDs.length) {
     // is host
     createPeer(true, '#1')
     return true
-    // 
-    // if (peerIDs.length === 1 && session.host === peerIDs[0]) {
-    //   return true
-    // }
   }
   // the second one to enter the meeting
   if (peerIDs.length === 1) {
@@ -153,6 +153,7 @@ export async function tryJoinMeeting(session: api.ISession) {
       createPeer(true, '#1')
       return true
     }
+    // only the host is online
     if (session.firstClientTicket?.offer.id === peerIDs[0]) {
       const peer = await createPeer(false, session.host)
       session.firstClientTicket?.offer.ticket.forEach(f => {
@@ -160,8 +161,12 @@ export async function tryJoinMeeting(session: api.ISession) {
       })
       return true
     }
+
+    console.warn('situation that not captured', session)
+    return
   }
   peerIDs.forEach(id => {
+    console.log('create peer', id)
     createPeer(true, id)
   })
   return true

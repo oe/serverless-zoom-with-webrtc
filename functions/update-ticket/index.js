@@ -55,11 +55,11 @@ exports.main = async function (evt) {
 
       if (session.firstClientTicket &&
         session.firstClientTicket.answer &&
-        peerID == session.firstClientTicket.answer.id) {
+        peerID === session.firstClientTicket.answer.id) {
       
         const answerTicket = session.firstClientTicket.answer.ticket || []
         answerTicket.push(...ticket)
-        chunk.firstClientTicket = firstClientTicket
+        chunk.firstClientTicket = session.firstClientTicket
       }
     })
 
@@ -78,7 +78,7 @@ exports.main = async function (evt) {
     return {
       code: 2,
       message: 'failed to query session info',
-      extra: error
+      extra: JSON.stringify(error)
     }
   }
 }
