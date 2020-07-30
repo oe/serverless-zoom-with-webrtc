@@ -54,6 +54,7 @@ export interface IClient {
 
 const app = tcb.init({
   env: 'tcb-demo-10cf5b'
+  // env: cfg.envId
 })
 
 const auth = app.auth({
