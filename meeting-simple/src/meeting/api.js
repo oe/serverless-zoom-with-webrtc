@@ -24,3 +24,24 @@ export async function createMeeting(meeting) {
   const result = await db.collection(MEETING_COLLECTION).add(meeting)
   return result
 }
+
+export async function getMeeting(meetingId) {
+  await signIn()
+  const result = await db.collection(MEETING_COLLECTION).doc(meetingId).get()
+  if (!result.data || !result.data.length) return
+  const meeting = result.data[0]
+
+  meeting.hasPass = !!meeting.pass
+  delete meeting.pass
+  return meeting
+}
+
+export async function joinMeeting(data) {
+  await signIn()
+  const result = await db.collection(MEETING_COLLECTION).doc(data.id).get()
+  if (!result.data || !result.data.length) throw new Error('meeting not exists')
+
+  const meeting = result.data[0]
+  if (meeting.pass && meeting.pass === data.pass) throw new Error('passcode not match')
+  return true
+}
