@@ -12,7 +12,6 @@ interface Props {
 interface IState {
   isSupportRTC: boolean
   isReady: boolean
-  hasPermission: boolean
 }
 
 export default class App extends React.Component<Props, IState> {
@@ -20,15 +19,8 @@ export default class App extends React.Component<Props, IState> {
     super(props)
     this.state = {
       isSupportRTC: utils.isSupportRTC(),
-      isReady: false,
-      hasPermission: false
+      isReady: false
     }
-  }
-  async componentDidMount() {
-    const hasPerm = await utils.hasMediaPermission()
-    this.setState({
-      hasPermission: hasPerm
-    })
   }
   setReady = () => {
     this.setState({isReady: true})
