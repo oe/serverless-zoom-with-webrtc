@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react'
-import * as utils from '../../utils'
+import * as utils from '../utils'
 
 export default function VideoWindow(props) {
   const videoRef = useRef(null)

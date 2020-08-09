@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Landing from './landing'
+import Landing from './meeting/landing'
 import Meeting from './meeting'
 
 export default function App() {

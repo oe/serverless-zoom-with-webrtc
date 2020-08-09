@@ -1,5 +1,5 @@
 {
-  "envId": "tcb-demo-10cf5b",
+  "envId": "{ENV_ID}",
   "functionRoot": "cloudfunctions",
   "framework": {
     "name": "react-starter",

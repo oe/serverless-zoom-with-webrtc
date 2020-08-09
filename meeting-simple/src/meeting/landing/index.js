@@ -42,11 +42,7 @@ function NotReady(props) {
       setPermissionState(status ? 'granted' : 'denied')
       if (!status) return
       try {
-        const sessID = location.hash.slice(1)
-        // if (sessID) {
-        //   await api.getSessionInfo(sessID)
-        // }
-        props.setReady('landing')
+        props.setReady()
       } catch (error) {
         console.warn('failed to get session info', error)
         setLoadingState('Failed to get meeting info: ' + JSON.stringify(error))
