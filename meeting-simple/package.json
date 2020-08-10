@@ -11,6 +11,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
+    "simple-peer": "^9.7.2",
     "tcb-js-sdk": "^1.7.1"
   },
   "scripts": {
@@ -34,5 +35,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@cloudbase/cli": "^0.9.3"
   }
 }

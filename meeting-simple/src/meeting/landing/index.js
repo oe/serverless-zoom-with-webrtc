@@ -2,7 +2,7 @@
 import { LoadingOutlined, WarningOutlined } from '@ant-design/icons'
 import React, { useEffect, useState } from 'react'
 import * as utils from '../utils'
-// import * as api from './meeting/api'
+import * as api from '../api'
 
 
 export default function Landing (props) {
@@ -40,6 +40,11 @@ function NotReady(props) {
     (async () => {
       const status = await utils.checkMediaPermission()
       setPermissionState(status ? 'granted' : 'denied')
+      const meetingId = location.hash.slice(1)
+      if (meetingId) {
+        // 预先获取会议信息, 避免多次加载 loading 情况
+        await api.getMeeting(meetingId)
+      }
       if (!status) return
       try {
         props.setReady()

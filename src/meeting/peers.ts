@@ -30,7 +30,6 @@ export const PEERS: IPeers = {}
 let peerCreatedCb: IPeerChangedCb | undefined
 let peerClosedCb: IPeerChangedCb | undefined
 
-
 export async function createPeer(initiator: boolean, peerID: string) {
   const peer = new Peer({initiator}) as PeerInstance
   const stream = await utils.getMediaStream({audio: true, video: true})

@@ -1,50 +1,43 @@
 /* eslint-disable no-restricted-globals */
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Form, Input, Button, message } from 'antd'
+import * as peers from '../peer'
 import * as api from '../api'
 
-
-
 export default function CreateJoinView(props) {
-  const [data, setData] = useState({isReady: false})
-  useEffect(() => {
-    (async ()=> {
-      try {
-        const meetingId = location.hash.slice(1)
-        if (!meetingId) return setData({isReady: true})
-        const result = await api.getMeeting(meetingId)
-        if (!result) {
-          message.warn('Meeting not exists, you can create on instead')
-          location.hash = ''
-          return setData({isReady: true})
-        }
-        return setData({isReady: true, meeting: result})
-      } catch (error) {
-        message.warn('Failed to init meeting',  0)
-      }
-    })()
-  }, [])
 
   const onCreateMeeting = async (values) => {
     const result = await api.createMeeting(values)
     message.success(`Meeting created with id ${result.id}`)
+    console.warn('create meeting', result.id)
     // 更新 hash 用于分享
     location.hash = result.id
-    props.updateMeeting('pending', values.pass)
+    const peer = await peers.createPeer(true, result.id)
+
+    props.updateMeeting('pending', values.pass, peer)
+
+    setTimeout(() => {
+      api.watchMeeting(result.id, (doc) => {
+        doc.answer && peers.signalTickets(peer, doc.answer)
+      })
+    }, 0)
     return true
   }
 
   const onJoinMeeting = async (vals) => {
     await api.joinMeeting(vals)
-    props.updateMeeting('connecting')
+    const peer = await peers.createPeer(false, vals.id)
+    props.updateMeeting('connecting', '', peer)
+    setTimeout(() => {
+      peers.signalTickets(peer, props.meeting.offer)
+      api.watchMeeting(vals.id, (doc) => {
+        doc.offer && peers.signalTickets(peer, doc.offer)
+      })
+    }, 0)
   }
 
-
-  if (!data.isReady) {
-    return <div>loading...</div>
-  }
-  return data.meeting ?
-    <JoinMeeting meeting={data.meeting} onSubmit={onJoinMeeting} /> :
+  return props.meeting ?
+    <JoinMeeting meeting={props.meeting} onSubmit={onJoinMeeting} /> :
     <CreateMeeting onSubmit={onCreateMeeting} />
 }
 
@@ -120,7 +113,7 @@ function JoinMeeting(props) {
     try {
       await props.onSubmit({...values, id: props.meeting._id})
     } catch (error) {
-      message.error('failed to enter meeting: ' + error.message)
+      message.error('Failed to enter meeting: ' + error.message)
       console.log('failed to enter meeting', error)
       setLoading(false)
     }
