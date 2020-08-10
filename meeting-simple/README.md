@@ -52,7 +52,7 @@
 2. 在 「api.js」中增加方法(直接调用云开发数据库能力)获取会议信息、加入会议
 
 注:
-1. 数据库需要设置成公开访问, 否则匿名用户无法查询到相关信息: 进入数据库找到对应 collection [https://console.cloud.tencent.com/tcb/database/collection/meeting-simple], 切换至 「权限设置」, 选择 「所有用户可读，仅创建者及管理员可写」并保存
+1. 数据库需要设置成公开访问, 否则匿名用户无法查询到相关信息: 进入数据库找到对应 [collection](https://console.cloud.tencent.com/tcb/database/collection/meeting-simple), 切换至 「权限设置」, 选择 「所有用户可读，仅创建者及管理员可写」并保存
 
 
 ## 第四步 [git commit](https://github.com/oe/serverless-zoom-with-webrtc/commit/607512a28d697e6c2d60efe795d449a483fe40b8)
