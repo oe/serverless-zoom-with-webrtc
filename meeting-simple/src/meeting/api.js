@@ -38,19 +38,20 @@ export async function getMeeting(meetingId) {
   }
   const meeting = result.data[0]
 
-  meeting.hasPass = !!meeting.pass
-  delete meeting.pass
   cachedMeeting = {id: meetingId, meeting}
   return meeting
 }
 
 export async function joinMeeting(data) {
   await signIn()
-  const result = await db.collection(MEETING_COLLECTION).doc(data.id).get()
-  if (!result.data || !result.data.length) throw new Error('meeting not exists')
-
-  const meeting = result.data[0]
-  if (meeting.pass && meeting.pass !== data.pass) throw new Error('passcode not match')
+  const result = await app.callFunction({
+    name: 'join-meeting-meeting-simple',
+    data
+  })
+  if (result.result.code) {
+    throw new Error(result.result.message)
+  }
+  
   return true
 }
 
