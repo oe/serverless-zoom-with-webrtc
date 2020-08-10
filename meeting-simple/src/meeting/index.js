@@ -35,10 +35,10 @@ export default function Meeting() {
   return (
     <div className="meeting">
       <Row gutter={16}>
-        <Col span={10} >
+        <Col span={10} offset={2}>
           <VideoWindow />
         </Col>
-        <Col span={10} >
+        <Col span={10} offset={1}>
           {
           data.status === 'loading' ? <div>loading...</div> :
           data.status === 'initial' ?

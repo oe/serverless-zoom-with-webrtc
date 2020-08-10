@@ -1,15 +1,28 @@
 {
-  "envId": "{ENV_ID}",
+  "envId": "tcb-demo-10cf5b",
   "functionRoot": "cloudfunctions",
   "framework": {
-    "name": "react-starter",
     "plugins": {
       "client": {
         "use": "@cloudbase/framework-plugin-website",
         "inputs": {
           "buildCommand": "npm run build",
           "outputPath": "build",
-          "cloudPath": "/react-starter"
+          "cloudPath": "/meeting-simple"
+        }
+      },
+      "db": {
+        "use": "@cloudbase/framework-plugin-database",
+        "inputs": {
+          "collections": [
+            {
+              "collectionName": "meeting-simple",
+              "aclTag": "READONLY"
+            },
+            {
+              "collectionName": "meeting-simple-pass"
+            }
+          ]
         }
       },
       "server": {
@@ -18,14 +31,18 @@
           "functionRootPath": "cloudfunctions",
           "functions": [
             {
-              "name": "stater-app",
-              "config": {
-                "timeout": 5,
-                "envVariables": {},
-                "runtime": "Nodejs10.15",
-                "memorySize": 128
-              }
-            }
+              "name": "autoclear-meeting-meeting-simple",
+              "triggers": [
+                {
+                  "name": "clear-time-trigger",
+                  "type": "timer",
+                  "config": "0 0 2 * * * *"
+                }
+              ]
+            },
+            { "name": "join-meeting-meeting-simple" },
+            { "name": "create-meeting-meeting-simple" },
+            { "name": "update-ticket-meeting-simple" }
           ]
         }
       }
