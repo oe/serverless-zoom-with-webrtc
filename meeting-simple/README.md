@@ -44,7 +44,8 @@
 
 注意要点:
 1. 浏览器端调用云开发能力需要借助官方npm包 [tcb-js-sdk](https://www.npmjs.com/package/tcb-js-sdk), [官方文档](https://docs.cloudbase.net/api-reference/webv2/initialization.html)
-2. 使用云开发能力(不论是在浏览器端、Node端或其他端)调用数据库时, 操作端collection必须存在, 否则会报错. 所以在本步骤应当提前进入[云开发数据库控制台](https://console.cloud.tencent.com/tcb/db/index) 创建视频会议使用的 collection `meeting-simple`
+2. 因为视频会议应用无需注册, 即需要匿名使用云开发能力, 调用能力前, 需要在云开发 [登录授权](https://console.cloud.tencent.com/tcb/env/login) 中开启 「匿名登录」
+3. 使用云开发能力(不论是在浏览器端、Node端或其他端)调用数据库时, 操作端collection必须存在, 否则会报错. 所以在本步骤应当提前进入[云开发数据库控制台](https://console.cloud.tencent.com/tcb/db/index) 创建视频会议使用的 collection `meeting-simple`
 
 
 ## 第三步 [git commit](https://github.com/oe/serverless-zoom-with-webrtc/commit/c8d9edcfc193e152ea5f3422aa4621c98399f819)
