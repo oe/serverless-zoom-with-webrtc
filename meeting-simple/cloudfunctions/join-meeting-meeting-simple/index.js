@@ -16,7 +16,12 @@ exports.main = async function (evt) {
     
     if (meeting.hasPass) {
       const passResult = await db.collection(MEETING_PASS_COLLECTION).where({meetingId: evt.id}).get()
-      if (!passResult.data || !passResult.data.length) return {code: 2, message: 'pass not exists'}
+      if (!passResult.data || !passResult.data.length) return {code: 2, message: 'passcode not found'}
+      const passInfo = passResult.data[0]
+      if (passInfo.pass !== evt.pass) return {
+        code: 3,
+        message: 'passcode not match'
+      }
     }
     return { code: 0 }
   } catch (error) {

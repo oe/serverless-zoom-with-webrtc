@@ -22,7 +22,7 @@ exports.main = async function (evt) {
     if (evt.hasPass) {
       const data = {
         createdAt: now,
-        meetingId: result._id,
+        meetingId: result.id,
         pass
       }
       await db

@@ -24,6 +24,6 @@ body {
   z-index: 1;
 }
 
-.meeting {
-  margin: 20px;
+#root {
+  padding: 20px;
 }

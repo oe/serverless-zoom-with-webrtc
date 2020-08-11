@@ -20,9 +20,14 @@ async function signIn() {
 
 export async function createMeeting(meeting) {
   await signIn()
-  meeting.createdAt = Date.now()
-  const result = await db.collection(MEETING_COLLECTION).add(meeting)
-  return result
+  const result = await app.callFunction({
+    name: 'create-meeting-meeting-simple',
+    data: meeting
+  })
+  if (result.result.code) {
+    throw new Error(result.result.message)
+  }
+  return result.result.data
 }
 
 let cachedMeeting
