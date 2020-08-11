@@ -40,12 +40,12 @@
 
 1. 增加 「创建会议」界面
 2. 增加云开发能力调用模块 「api.js」, 添加 创建会议方法(通过云开发js sdk 连接数据库创建记录)
-3. 使用JS sdk调用云开发能力时, 需保证调用的域名已加入云开发[WEB安全域名](https://console.cloud.tencent.com/tcb/env/safety)中, 以避免调用时出现跨域问题. 即本地开发使用的域名应增加进 WEB安全域名 中.
 
 注意要点:
 1. 浏览器端调用云开发能力需要借助官方npm包 [tcb-js-sdk](https://www.npmjs.com/package/tcb-js-sdk), [官方文档](https://docs.cloudbase.net/api-reference/webv2/initialization.html)
 2. 因为视频会议应用无需注册, 即需要匿名使用云开发能力, 调用能力前, 需要在云开发 [登录授权](https://console.cloud.tencent.com/tcb/env/login) 中开启 「匿名登录」
 3. 使用云开发能力(不论是在浏览器端、Node端或其他端)调用数据库时, 操作端collection必须存在, 否则会报错. 所以在本步骤应当提前进入[云开发数据库控制台](https://console.cloud.tencent.com/tcb/db/index) 创建视频会议使用的 collection `meeting-simple`
+4. 使用JS sdk调用云开发能力时, 需保证调用的域名已加入云开发[WEB安全域名](https://console.cloud.tencent.com/tcb/env/safety)中, 以避免调用时出现跨域问题. 即本地开发使用的域名应增加进 WEB安全域名 中.
 
 
 ## 第三步 [git commit](https://github.com/oe/serverless-zoom-with-webrtc/commit/c8d9edcfc193e152ea5f3422aa4621c98399f819)
@@ -91,3 +91,7 @@
 
 
 更多cloudbase framework插件可阅读[官方文档](https://github.com/TencentCloudBase/cloudbase-framework#%E7%9B%AE%E5%89%8D%E6%94%AF%E6%8C%81%E7%9A%84%E6%8F%92%E4%BB%B6%E5%88%97%E8%A1%A8)
+
+## 在自己的云开发环境中部署
+1. 修改 [cloudbaserc.json](./cloudbaserc.json) 和 [api.js](./src/meeting/api.js) 中的环境ID `tcb-demo-10cf5b`为自己环境的值
+2. 命令行 cd 到本目录中, 先后执行 `npm install` 和 `npm run deploy` 即可
