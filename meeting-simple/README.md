@@ -29,10 +29,11 @@
 4. 增加 Video-window 页, 用于支持视频画面显示
 
 注意要点:
-1. 使用 `cloudbase init` 前, 请确保已使用 `npm install -g @cloudbase/cli` [全局安装该命令](https://docs.cloudbase.net/quick-start/web.html)
-2. WebRTC 需要浏览器支持, 只有现代浏览器才支持, 建议使用 [Chrome](https://www.google.cn/chrome/)、Firefox 来体验, 具体兼容性可查看 [caniuse](https://caniuse.com/#search=webrtc)
-3. 由于安全策略限制, WebRTC 支持 https 协议网站; 其为方便本地开发, 页支持 http 的 `localhost` 及 `127.0.0.1` (不限端口), 不支持其他自定义的本机域名、IP
-4. WebRTC 并不具备穿透内网功能, 测试体验时, 确保双方机器都处于公网之中并能访问[云开发](https://www.cloudbase.net)相关域名
+1. 在进行操作之前, 请确保已经注册[腾讯云账户](https://console.cloud.tencent.com/tcb/),
+2. 使用 `cloudbase init` 前, 请确保已使用 `npm install -g @cloudbase/cli` [全局安装该命令](https://docs.cloudbase.net/quick-start/web.html)
+3. WebRTC 需要浏览器支持, 只有现代浏览器才支持, 建议使用 [Chrome](https://www.google.cn/chrome/)、Firefox 来体验, 具体兼容性可查看 [caniuse](https://caniuse.com/#search=webrtc)
+4. 由于安全策略限制, WebRTC 支持 https 协议网站; 其为方便本地开发, 页支持 http 的 `localhost` 及 `127.0.0.1` (不限端口), 不支持其他自定义的本机域名、IP
+5. WebRTC 并不具备穿透内网功能, 测试体验时, 确保双方机器都处于公网之中并能访问[云开发](https://www.cloudbase.net)相关域名
 
 
 ## 第二步 [git commit](https://github.com/oe/serverless-zoom-with-webrtc/commit/ecc61be1ba59f7910ebcffe425e0c53edf0160b5)
