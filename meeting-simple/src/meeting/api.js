@@ -1,94 +1,98 @@
-import tcb from 'tcb-js-sdk'
+import tcb from "tcb-js-sdk";
 
+console.log(process.env.REACT_APP_ENV_ID, process);
 const app = tcb.init({
-  env: 'tcb-demo-10cf5b'
-})
+  env: process.env.REACT_APP_ENV_ID,
+});
 
 const auth = app.auth({
-  persistence: 'local'
-})
+  persistence: "local",
+});
 
-const db = app.database()
+const db = app.database();
 // 会议表名称
-const MEETING_COLLECTION = 'meeting-simple'
+const MEETING_COLLECTION = "meeting-simple";
 
 async function signIn() {
-  if (auth.hasLoginState()) return true
-  await auth.signInAnonymously()
-  return true
+  if (auth.hasLoginState()) return true;
+  await auth.signInAnonymously();
+  return true;
 }
 
 export async function createMeeting(meeting) {
-  await signIn()
+  await signIn();
   const result = await app.callFunction({
-    name: 'create-meeting-meeting-simple',
-    data: meeting
-  })
+    name: "create-meeting-meeting-simple",
+    data: meeting,
+  });
   if (result.result.code) {
-    throw new Error(result.result.message)
+    throw new Error(result.result.message);
   }
-  return result.result.data
+  return result.result.data;
 }
 
-let cachedMeeting
+let cachedMeeting;
 export async function getMeeting(meetingId) {
   // 使用缓存
-  if (cachedMeeting && cachedMeeting.id === meetingId) return cachedMeeting.meeting
-  await signIn()
-  const result = await db.collection(MEETING_COLLECTION).doc(meetingId).get()
+  if (cachedMeeting && cachedMeeting.id === meetingId)
+    return cachedMeeting.meeting;
+  await signIn();
+  const result = await db.collection(MEETING_COLLECTION).doc(meetingId).get();
   if (!result.data || !result.data.length) {
     // 无结果亦缓存
-    cachedMeeting = {id: meetingId}
-    return
+    cachedMeeting = { id: meetingId };
+    return;
   }
-  const meeting = result.data[0]
+  const meeting = result.data[0];
 
-  cachedMeeting = {id: meetingId, meeting}
-  return meeting
+  cachedMeeting = { id: meetingId, meeting };
+  return meeting;
 }
 
 export async function joinMeeting(data) {
-  await signIn()
+  await signIn();
   const result = await app.callFunction({
-    name: 'join-meeting-meeting-simple',
-    data
-  })
+    name: "join-meeting-meeting-simple",
+    data,
+  });
   if (result.result.code) {
-    throw new Error(result.result.message)
+    throw new Error(result.result.message);
   }
-  
-  return true
+
+  return true;
 }
 
 export async function updateTicket(data) {
-  await signIn()
+  await signIn();
   const res = await app.callFunction({
-    name: 'update-ticket-meeting-simple',
-    data
-  })
-  return res
+    name: "update-ticket-meeting-simple",
+    data,
+  });
+  return res;
 }
 
-
-let watcher = null
+let watcher = null;
 export async function watchMeeting(meetingId, onChange) {
-  await signIn()
-  watcher && watcher.close()
-  watcher = db.collection(MEETING_COLLECTION)
+  await signIn();
+  watcher && watcher.close();
+  watcher = db
+    .collection(MEETING_COLLECTION)
     .doc(meetingId)
     .watch({
       onChange: (snapshot) => {
-        console.error(snapshot)
+        console.error(snapshot);
 
-        if (!snapshot.docChanges ||
+        if (
+          !snapshot.docChanges ||
           !snapshot.docChanges.length ||
           !snapshot.docChanges[0].doc
-          ) return
+        )
+          return;
 
-        onChange(snapshot.docChanges[0].doc)
+        onChange(snapshot.docChanges[0].doc);
       },
       onError: (err) => {
-        console.log('watch error', err)
-      }
-    })
+        console.log("watch error", err);
+      },
+    });
 }

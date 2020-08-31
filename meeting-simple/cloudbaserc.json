@@ -1,5 +1,7 @@
 {
-  "envId": "tcb-demo-10cf5b",
+  "envId": "{{env.ENV_ID}}",
+  "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
+  "version": "2.0",
   "functionRoot": "cloudfunctions",
   "framework": {
     "plugins": {
@@ -8,7 +10,10 @@
         "inputs": {
           "buildCommand": "npm run build",
           "outputPath": "build",
-          "cloudPath": "/meeting-simple"
+          "cloudPath": "/meeting-simple",
+          "envVariables": {
+            "REACT_APP_ENV_ID": "{{env.ENV_ID}}"
+          }
         }
       },
       "db": {
