@@ -23,7 +23,7 @@
 
 ### 本地部署
 
-1. 修改 .env 文件中的`ENV_ID`的值`tcb-demo-10cf5b`修改为自己的环境 ID
+1. 修改 .env 文件中的 ` ENV_ID` 的值 `tcb-demo-10cf5b` 修改为自己的环境 ID
 2. 命令行 cd 到本目录中, 执行 `npm run deploy` 即可
 
 ## 技术解析
@@ -39,6 +39,36 @@
 7. [Ant design](https://ant.design)
 
 如果你不清楚项目开发的基本命令, 可阅读本项目使用的[模版的 readme.md](https://github.com/TencentCloudBase/cloudbase-templates/blob/master/react-starter/README.md)
+
+## 背景知识
+
+### Web RTC
+
+1. WebRTC 即 Web 实时通信技术, 由一系列浏览器 API 组成, 包括 _navigator.getUserMedia\*\*,_ _MediaStream**, RTC**相关的全局对象_
+
+2. WebRTC 是一种 P2P 的通信技术, 浏览器之间可以对等连接. 但浏览器之间需要通过一个信令服务器来交换信令后方可建立连接
+
+3. 浏览器的信令信息的获取需要一个 ICE 服务器, 一般默认会使用谷歌的公共服务器
+
+![image-20200901204938345](https://tva1.sinaimg.cn/large/007S8ZIlgy1gibfw2ufgqj30tu0du41w.jpg)
+
+![image-20200901204916919](https://tva1.sinaimg.cn/large/007S8ZIlgy1gibfvpv37vj30p60gajw6.jpg)
+
+## 云开发
+
+云开发（CloudBase）是云端一体化的后端云服务 ，采用 serverless 架构，免去了应用构建中繁琐的服务器搭建和运维。同时云开发提供的静态托管、命令行工具（CLI）、Flutter SDK 等能力降低了应用开发的门槛。使用云开发可以构建完整的小程序/小游戏、H5、Web、移动 App 等应用。
+
+![](https://tva1.sinaimg.cn/large/007S8ZIlgy1gibh9r5ingj31hc0u00yz.jpg)
+
+### CloudBase Framework
+
+CloudBase Framework 是云开发官方出品的开源前后端一体化部署工具，无需改动代码，实现前后端一键托管部署，支持常见的框架和语言，支持自动识别并部署。不仅可以部署应用前后端到 Serverless，还可以扩展更多后端能力。
+
+![img](https://main.qcloudimg.com/raw/952b432a3b0688cc2f40e23b09c3fffa.png)
+
+Github 地址： https://github.com/TencentCloudBase/cloudbase-framework
+
+![](https://main.qcloudimg.com/raw/a9debe766e8de780f76e20aeb815317d.png)
 
 ## 完整搭建步骤：从 0 到 1 实现一个在线会议应用
 
@@ -529,7 +559,14 @@ exports.main = async function (evt) {
         .where({ meetingId: evt.id })
         .get();
       if (!passResult.data || !passResult.data.length)
-        return { code: 2, message: "pass not exists" };
+        return { code: 2, message: "passcode not found" };
+      const passInfo = passResult.data[0];
+      // 对比会议密码
+      if (passInfo.pass !== evt.pass)
+        return {
+          code: 3,
+          message: "passcode not match",
+        };
     }
     return { code: 0 };
   } catch (error) {
@@ -691,3 +728,5 @@ cloudbase framework:deploy
 本步骤对应的 [git commit](https://github.com/oe/serverless-zoom-with-webrtc/commit/ec4c008e187b4b93d98fb351ffce2cd64e4c447d)
 
 ## 总结
+
+在本次实战案例里面，我们通过了解了 WebRTC 的基本使用，通过在线会议系统的实战了解了基于云开发开发一个应用的完整流程，学会使用了数据库实时推送能力的使用、匿名用户使用数据库的安全策略问题及云函数定时调用功能，掌握了使用 CloudBase Framework 一键部署前后端应用这一工具来快速交付。
