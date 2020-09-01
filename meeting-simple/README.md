@@ -77,7 +77,7 @@ npm i ant-d @ant-design/icons -S
 
 3. 增加 landing 页, 用于检测 WebRTC 能力以及判断用户是否授予摄像头及麦克风访问权限
 
-landing页面核心代码 `meeting-simple/src/landing/index.js` 
+landing 页面核心代码 `meeting-simple/src/landing/index.js`
 
 ```js
 import { LoadingOutlined, WarningOutlined } from "@ant-design/icons";
@@ -207,7 +207,7 @@ export default function VideoWindow(props) {
 }
 ```
 
- 工具方法的核心实现`meeting-simple/src/utils.js`，检测是否支持 WebRTC、
+工具方法的核心实现`meeting-simple/src/utils.js`，检测是否支持 WebRTC、
 
 ```js
 /** 检查是否支持 WebRTC */
@@ -221,14 +221,14 @@ export async function checkMediaPermission() {
     audio: true,
     video: true,
   });
-  
+
   // 判断是否有视频和声音轨道输入
   const result =
     stream.getAudioTracks().length && stream.getVideoTracks().length;
-  
+
   // 终止媒体流输入
   revokeMediaStream(stream);
-  
+
   return result;
 }
 
@@ -374,18 +374,18 @@ export async function joinMeeting(data) {
 
 2. 增加云函数 「更新 ticket」(用于更新 WebRTC 客户端的连接信息)并手动部署云函数, 增加对会议记录对监听(即使用数据库的实时推送能力)
 
-   用于更新 WebRTC 客户端的连接信息的云函数的核心代码 `meeting-simple/cloudfunctions/update-ticket-meeting-simple/index.js`
+用于更新 WebRTC 客户端的连接信息的云函数的核心代码 `meeting-simple/cloudfunctions/update-ticket-meeting-simple/index.js`
 
-   ```js
+```js
 const cloud = require("@cloudbase/node-sdk");
-   
+
    const MEETING_COLLECTION = "meeting-simple";
 
    exports.main = async (data) => {
   const app = cloud.init({
        env: cloud.SYMBOL_CURRENT_ENV,
      });
-   
+
      const collection = app.database().collection(MEETING_COLLECTION);
 
      try {
@@ -394,20 +394,20 @@ const cloud = require("@cloudbase/node-sdk");
        if (!result.data || !result.data.length)
          throw new Error("meeting not exists");
        const meeting = result.data[0];
-   
+
        const changed = {};
     changed[data.type] = meeting[data.type] ||
-   
+
        // 若新的tickets中包含 offer 或 answer, 则已经存储的tickets信息无效
     if (data.tickets.some((tk) => ["offer", "answer"].includes(tk.type))) {
          changed[data.type] = data.tickets;
        } else {
          changed[data.type].push(...data.tickets);
        }
-   
+
        // 另一方信息已经被接受使用, 已无效, 清空之, 避免 客户端 watch 时使用无效数据
     changed[data.type === "offer" ? "answer" : "offer"] = null;
-   
+
        // 更新会议信息
     const res = await collection.doc(data.meetingId).update(changed);
        return {
@@ -421,53 +421,53 @@ const cloud = require("@cloudbase/node-sdk");
        };
      }
    };
-   ```
-   
-   更新票据和监听会议信息变更的前端 API 核心代码 meeting-simple/src/meeting/api.js
+```
 
-   ```js
+更新票据和监听会议信息变更的前端 API 核心代码 meeting-simple/src/meeting/api.js
+
+```js
 // 更新票据
-   export async function updateTicket(data) {
-     await signIn();
-     const res = await app.callFunction({
-       name: "update-ticket-meeting-simple",
-       data,
-     });
-     return res;
-   }
-   
-   let watcher = null;
+export async function updateTicket(data) {
+  await signIn();
+  const res = await app.callFunction({
+    name: "update-ticket-meeting-simple",
+    data,
+  });
+  return res;
+}
+
+let watcher = null;
 export async function watchMeeting(meetingId, onChange) {
-     await signIn();
-   
-     // 如果有监听，关闭监听
+  await signIn();
+
+  // 如果有监听，关闭监听
   watcher && watcher.close();
-   
-     // 新建数据库监听
+
+  // 新建数据库监听
   watcher = db
-       .collection(MEETING_COLLECTION)
-       .doc(meetingId)
-       .watch({
-         onChange: (snapshot) => {
-           console.error(snapshot);
-   
-           if (
+    .collection(MEETING_COLLECTION)
+    .doc(meetingId)
+    .watch({
+      onChange: (snapshot) => {
+        console.error(snapshot);
+
+        if (
           !snapshot.docChanges ||
-             !snapshot.docChanges.length ||
-             !snapshot.docChanges[0].doc
-           )
-             return;
-   
-           // 回调最新的数据库文档信息
+          !snapshot.docChanges.length ||
+          !snapshot.docChanges[0].doc
+        )
+          return;
+
+        // 回调最新的数据库文档信息
         onChange(snapshot.docChanges[0].doc);
-         },
-         onError: (err) => {
-           console.log("watch error", err);
-         },
-       });
-   }
-   ```
-   
+      },
+      onError: (err) => {
+        console.log("watch error", err);
+      },
+    });
+}
+```
+
 3. 优化会议信息的获取提升体验
 
 #### 注意
@@ -521,7 +521,7 @@ exports.main = async function (evt) {
     if (!result.data || !result.data.length)
       return { code: 1, message: "meeting not exists" };
     const meeting = result.data[0];
-		
+
     if (meeting.hasPass) {
       // 查询会议密码
       const passResult = await db
