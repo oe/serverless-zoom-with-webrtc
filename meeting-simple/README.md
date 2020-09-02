@@ -402,6 +402,72 @@ export async function joinMeeting(data) {
 
 1. 增加 simple-peer 来管理 WebRTC 客户端
 
+```js
+import Peer from "simple-peer";
+import * as utils from "./utils";
+import * as api from "./api";
+
+export async function createPeer(initiator, meetingId) {
+  const peer = new Peer({ initiator });
+  const stream = await utils.getMediaStream();
+  peer.addStream(stream);
+
+  // peer 接收到 signal 事件时，调用 peer.signal(data) 来建立连接，那么如何拿到 data 信息呢
+  peer.on("signal", (e) => {
+    console.log("[peer event]signal", e);
+    // 调用更新写入数据库
+    updateTicket(e, initiator, meetingId);
+  });
+  peer.on("connect", (e) => {
+    console.log("[peer event]connect", e);
+  });
+  peer.on("data", (e) => {
+    console.log("[peer event]data", e);
+  });
+  peer.on("stream", (e) => {
+    console.log("[peer event]stream", e);
+  });
+  peer.on("track", (e) => {
+    console.log("[peer event]track", e);
+  });
+  peer.on("close", () => {
+    console.log("[peer event]close");
+  });
+  peer.on("error", (e) => {
+    console.log("[peer event]error", e);
+  });
+  return peer;
+}
+
+let cachedTickets = [];
+let tid = 0;
+
+function updateTicket(signal, isInitiator, meetingId) {
+  cachedTickets.push(signal);
+  clearTimeout(tid);
+  tid = setTimeout(async () => {
+    const tickets = cachedTickets.splice(0);
+    try {
+      // 写入数据库
+      const result = await api.updateTicket({
+        meetingId,
+        tickets,
+        type: isInitiator ? "offer" : "answer",
+      });
+      console.warn("[updateTicket] success", result);
+    } catch (error) {
+      console.warn("[updateTicket] failed", error);
+    }
+  }, 100);
+}
+
+export function signalTickets(peer, tickets) {
+  tickets.forEach((item) => {
+    peer.signal(item);
+  });
+}
+```
+
 2. 增加云函数 「更新 ticket」(用于更新 WebRTC 客户端的连接信息)并手动部署云函数, 增加对会议记录对监听(即使用数据库的实时推送能力)
 
 用于更新 WebRTC 客户端的连接信息的云函数的核心代码 `meeting-simple/cloudfunctions/update-ticket-meeting-simple/index.js`
