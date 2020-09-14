@@ -80,7 +80,7 @@ Github 地址： https://github.com/TencentCloudBase/cloudbase-framework
 
 1. 在进行操作之前, 请确保已经注册[腾讯云账户](https://console.cloud.tencent.com/tcb/)
 2. WebRTC 需要浏览器支持, 只有现代浏览器才支持, 建议使用 [Chrome](https://www.google.cn/chrome/)、Firefox 来体验, 具体兼容性可查看 [caniuse](https://caniuse.com/#search=webrtc)
-3. 由于安全策略限制, WebRTC 支持 https 协议网站; 其为方便本地开发, 页支持 http 的 `localhost` 及 `127.0.0.1` (不限端口), 不支持其他自定义的本机域名、IP
+3. 由于安全策略限制, WebRTC 仅支持 https 协议网站; 其为方便本地开发, 也支持 http 的 `localhost` 及 `127.0.0.1` (不限端口), 不支持其他自定义的本机域名、IP
 4. WebRTC 并不具备穿透内网功能, 测试体验时, 确保双方机器都处于公网之中并能访问[云开发](https://www.cloudbase.net)相关域名
 
 #### 操作步骤
